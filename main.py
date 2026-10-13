@@ -22,6 +22,8 @@ claw_servo = actuators.Servo(Pin(16), 0)
 
 left_light_sensor = sensors.Light_Sensor("GP10")
 right_light_sensor = sensors.Light_Sensor("GP11")
+far_left_light_sensor = sensors.Light_Sensor("GP12")
+far_right_light_sensor = sensors.Light_sensor("GP13")
 
 robot = Robot(
     left_motor=left_motor,
@@ -29,7 +31,9 @@ robot = Robot(
     forklift_servo=forklift_servo,
     claw_servo=claw_servo,
     left_light_sensor=left_light_sensor,
-    right_light_sensor=right_light_sensor
+    right_light_sensor=right_light_sensor,
+    far_left_light_sensor=far_left_light_sensor,
+    far_right_light_sensor=far_right_light_sensor
     )
 
 running = False

@@ -1,5 +1,8 @@
+from utime import sleep_ms
+
 class Robot:
-    def __init__(self, left_motor, right_motor, forklift_servo, claw_servo, left_light_sensor, right_light_sensor):
+    def __init__(self, left_motor, right_motor, forklift_servo, claw_servo, 
+                 left_light_sensor, right_light_sensor, far_left_light_sensor, far_right_light_sensor):
         self.left_motor = left_motor
         self.right_motor = right_motor
 
@@ -8,6 +11,9 @@ class Robot:
 
         self.left_light_sensor = left_light_sensor
         self.right_light_sensor = right_light_sensor
+
+        self.far_left_light_sensor = far_left_light_sensor
+        self.far_right_light_sensor = far_right_light_sensor
 
         self.running = False
     
@@ -27,10 +33,35 @@ class Robot:
             self.right_motor.speed += 5
         self.left_motor.update()
         self.right_motor.update()
-            
+
+    def check_for_bend(self):
+        # Execute 90 degree turn if white detected on far sensors
+        left_line = self.far_left_light_sensor.value()
+        right_line = self.far_right_light_sensor.value()
+
+        if left_line == 0 and right_line == 1:
+            print("Executing right turn")
+            self.left_motor.speed += 50
+            self.left_motor.update()
+            sleep_ms(1200)
+
+        if left_line == 1 and right_line == 0:
+            print("Executing left turn")
+            self.right_motor.speed += 50
+            self.right_motor.update()
+            sleep_ms(1200)
+
+        if left_line == 1 and right_line == 1:
+            # Update for later for case where line splits in 2
+            pass
+
+        
     def update(self):
-        self.Drive_forward(100)
+        self.Drive_forward(50)
+        self.check_for_bend()
         self.Line_following()
+        sleep_ms(50)
+
     
     def reset(self):
         self.left_motor.off()
