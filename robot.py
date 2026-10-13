@@ -15,6 +15,8 @@ class Robot:
         self.far_left_light_sensor = far_left_light_sensor
         self.far_right_light_sensor = far_right_light_sensor
 
+        self.has_box = False
+
         self.running = False
     
     def Drive_forward(self, speed):
