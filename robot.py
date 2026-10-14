@@ -1,6 +1,13 @@
 from utime import sleep_ms
+<<<<<<< HEAD
 class Robot:
     def __init__(self, left_motor, right_motor, forklift_servo, claw_servo, left_light_sensor, right_light_sensor, far_left_light_sensor, far_right_light_sensor):
+=======
+
+class Robot:
+    def __init__(self, left_motor, right_motor, forklift_servo, claw_servo, 
+                 left_light_sensor, right_light_sensor, far_left_light_sensor, far_right_light_sensor):
+>>>>>>> 29f4dd99eb885b0877e6b1241fd9909286b64e8f
         self.left_motor = left_motor
         self.right_motor = right_motor
 
@@ -12,6 +19,11 @@ class Robot:
         
         self.far_left_light_sensor = far_left_light_sensor
         self.far_right_light_sensor = far_right_light_sensor
+
+        self.far_left_light_sensor = far_left_light_sensor
+        self.far_right_light_sensor = far_right_light_sensor
+
+        self.has_box = False
 
         self.running = False
     
@@ -30,14 +42,20 @@ class Robot:
             self.left_motor.speed -= 20
         self.left_motor.update()
         self.right_motor.update()
+<<<<<<< HEAD
     
     def check_for_bend(self):
         sleep_ms(200)
+=======
+
+    def check_for_bend(self):
+>>>>>>> 29f4dd99eb885b0877e6b1241fd9909286b64e8f
         # Execute 90 degree turn if white detected on far sensors
         left_line = self.far_left_light_sensor.value()
         right_line = self.far_right_light_sensor.value()
 
         if left_line == 0 and right_line == 1:
+<<<<<<< HEAD
             print("Executing right turn (tank drive)")
             self.left_motor.Forward(speed = 100)
             self.right_motor.Reverse(speed = 100)
@@ -47,17 +65,39 @@ class Robot:
             print("Executing left turn (tank drive)")
             self.right_motor.Forward(speed = 100)
             self.left_motor.Reverse(speed = 100)
+=======
+            print("Executing right turn")
+            self.left_motor.speed += 50
+            self.left_motor.update()
+            sleep_ms(1200)
+
+        if left_line == 1 and right_line == 0:
+            print("Executing left turn")
+            self.right_motor.speed += 50
+            self.right_motor.update()
+>>>>>>> 29f4dd99eb885b0877e6b1241fd9909286b64e8f
             sleep_ms(1200)
 
         if left_line == 1 and right_line == 1:
             # Update for later for case where line splits in 2
             pass
+<<<<<<< HEAD
     
+=======
+
+        
+>>>>>>> 29f4dd99eb885b0877e6b1241fd9909286b64e8f
     def update(self):
-        self.Drive_forward(100)
+        self.Drive_forward(50)
+        self.check_for_bend()
         self.Line_following()
+<<<<<<< HEAD
         print(f"left_motor: {self.left_motor.speed}   right_motor: {self.right_motor.speed}")
         sleep_ms(100)
+=======
+        sleep_ms(50)
+
+>>>>>>> 29f4dd99eb885b0877e6b1241fd9909286b64e8f
     
     def reset(self):
         self.left_motor.off()

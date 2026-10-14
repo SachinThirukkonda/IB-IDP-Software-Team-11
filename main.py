@@ -9,7 +9,11 @@ from robot import Robot
 
 def run(robot):
     """Main pipeline for the robot."""
+<<<<<<< HEAD
     robot.test_light_sensors()
+=======
+    robot.update()
+>>>>>>> 29f4dd99eb885b0877e6b1241fd9909286b64e8f
 
 
 #button = Pin("GP22", Pin.IN, Pin.PULL_DOWN)
@@ -22,6 +26,8 @@ claw_servo = actuators.Servo(Pin(16), 0)
 
 left_light_sensor = sensors.Light_Sensor("GP10")
 right_light_sensor = sensors.Light_Sensor("GP11")
+far_left_light_sensor = sensors.Light_Sensor("GP12")
+far_right_light_sensor = sensors.Light_sensor("GP13")
 
 far_left_light_sensor = sensors.Light_Sensor("GP12")
 far_right_light_sensor = sensors.Light_Sensor("GP13")

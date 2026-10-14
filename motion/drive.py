@@ -8,6 +8,5 @@ def adjust_motion(speed_left, speed_right, motor_left, motor_right):
     motor_left.Forward(speed = speed_left)
     motor_right.Forward(speed = speed_right)
         
-adjust_motion(20,20, motor_left, motor_right)
 
     
