@@ -1,5 +1,4 @@
 from machine import Pin, PWM
-from utime import sleep
 
 class Motor:
     def __init__(self, dirPin, PWMPin):
@@ -15,13 +14,13 @@ class Motor:
     def Forward(self, speed=None):
         if speed != None:
             self.speed = speed
-        self.mDir.value(0)                     # forward = 0 reverse = 1 motor
+        self.mDir.value(1)                     # forward = 0 reverse = 1 motor
         self.pwm.duty_u16(int(65535 * self.speed / 100))  # speed range 0-100 motor
 
     def Reverse(self, speed=None):
         if speed != None:
             self.speed = speed
-        self.mDir.value(1)
+        self.mDir.value(0)
         self.pwm.duty_u16(int(65535 * self.speed / 100))
         
     def update(self):
