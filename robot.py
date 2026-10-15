@@ -37,35 +37,44 @@ class Robot:
         self.right_motor.update()
     
     def check_for_bend(self):
-        sleep_ms(200)
         # Execute 90 degree turn if white detected on far sensors
         left_line = self.far_left_light_sensor.value()
         right_line = self.far_right_light_sensor.value()
 
         if left_line == 0 and right_line == 1:
-            print("Executing right turn (tank drive)")
-            self.left_motor.Forward(speed = 100)
-            self.right_motor.Reverse(speed = 100)
-            sleep_ms(1200)
+            return("right")
 
         if left_line == 1 and right_line == 0:
-            print("Executing left turn (tank drive)")
-            self.right_motor.Forward(speed = 100)
-            self.left_motor.Reverse(speed = 100)
-            sleep_ms(1200)
+            return("left")
 
         if left_line == 1 and right_line == 1:
             # Update for later for case where line splits in 2
-            pass
+            return None
     
+    def turning_sequence(self, turn):
+        if turn == "left":
+            sleep_ms(50)
+            if self.check_for_bend() == "left":
+                print("Executing left turn (tank drive)")
+                self.right_motor.Forward(speed = 100)
+                self.left_motor.Reverse(speed = 100)
+                sleep_ms(500)
+        if turn == "right":
+            sleep_ms(50)
+            if self.check_for_bend() == "right":
+                print("Executing right turn (tank drive)")
+                self.left_motor.Forward(speed = 100)
+                self.right_motor.Reverse(speed = 100)
+                sleep_ms(500)
 
         
+        
     def update(self):
-        self.Drive_forward(50)
-        self.check_for_bend()
+        self.Drive_forward(100)
+        self.turning_sequence(self.check_for_bend())
         self.Line_following()
         print(f"left_motor: {self.left_motor.speed}   right_motor: {self.right_motor.speed}")
-        sleep_ms(100)
+        sleep_ms(200)
     
     def reset(self):
         self.left_motor.off()

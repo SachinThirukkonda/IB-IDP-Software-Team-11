@@ -20,12 +20,10 @@ right_motor = actuators.Motor(4, 5)
 forklift_servo = actuators.Servo(Pin(15), 0)
 claw_servo = actuators.Servo(Pin(16), 0)
 
-left_light_sensor = sensors.Light_Sensor("GP10")
-right_light_sensor = sensors.Light_Sensor("GP11")
-far_left_light_sensor = sensors.Light_Sensor("GP12")
-far_right_light_sensor = sensors.Light_sensor("GP13")
+left_light_sensor = sensors.Light_Sensor("GP11")
+right_light_sensor = sensors.Light_Sensor("GP12")
 
-far_left_light_sensor = sensors.Light_Sensor("GP12")
+far_left_light_sensor = sensors.Light_Sensor("GP10")
 far_right_light_sensor = sensors.Light_Sensor("GP13")
 
 robot = Robot(
@@ -40,15 +38,17 @@ robot = Robot(
     )
 
 running = True
-while True:
-    #print(button.value())
-    if running:
-        try:
-            run(robot)
-        except Exception as e:
-            print("Robot error:", e)
-            running = False
-            robot.reset()
-        finally:
-            robot.reset()
-    sleep_ms(10)
+try:
+    while True:
+        #print(button.value())
+        if running:
+            try:
+                run(robot)
+            except Exception as e:
+                print("Robot error:", e)
+                running = False
+                robot.reset()
+        sleep_ms(10)
+finally:
+    print("Program ended")
+    robot.reset()
