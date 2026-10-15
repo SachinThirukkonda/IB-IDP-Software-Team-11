@@ -11,17 +11,11 @@ class Motor:
     def off(self):
         self.pwm.duty_u16(0)
         
-    def Forward(self, speed=None):
+    def on(self, dir=1, speed=None):
         if speed != None:
             self.speed = speed
-        self.mDir.value(1)                     # forward = 0 reverse = 1 motor
+        self.mDir.value(dir)                  # forward = 0 reverse = 1 motor
         self.pwm.duty_u16(int(65535 * self.speed / 100))  # speed range 0-100 motor
-
-    def Reverse(self, speed=None):
-        if speed != None:
-            self.speed = speed
-        self.mDir.value(0)
-        self.pwm.duty_u16(int(65535 * self.speed / 100))
         
     def update(self):
         self.pwm.duty_u16(int(65535 * self.speed / 100))
@@ -65,7 +59,7 @@ class Servo:
        duty = int(Servo.MIN_DUTY + (angle / 270) * (Servo.MAX_DUTY - Servo.MIN_DUTY))
        self.servo.duty_u16(duty)
     
-    def reset():
+    def reset(self):
         self.set_angle(self.reset_angle)
         
     
