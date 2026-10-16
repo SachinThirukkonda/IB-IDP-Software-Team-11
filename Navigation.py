@@ -7,7 +7,7 @@ class Crossroads:
         self.rack = rack #does this have somewhere to put a box?
 
 class Navigator:
-    def __init__(self, start, destination=None, orientation, robot, moving = False):
+    def __init__(self, start, orientation, robot, destination=None, moving = False):
         # 0-north, 1-east, 2-south, 3-west
         self.start = start
         self.destination = destination

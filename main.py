@@ -9,7 +9,7 @@ from robot import Robot
 
 def run(robot):
     """Main pipeline for the robot."""
-    robot.update()
+    return robot.update()
 
 
 #button = Pin("GP22", Pin.IN, Pin.PULL_DOWN)
@@ -37,10 +37,11 @@ robot = Robot(
     far_right_light_sensor=far_right_light_sensor
     )
 
+running = True
 try:
-    while True:
+    while running:
         try:
-            run(robot)
+            running = run(robot)
         except Exception as e:
             print("Robot error:", e)
             running = False

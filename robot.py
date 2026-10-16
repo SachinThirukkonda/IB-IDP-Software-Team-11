@@ -15,8 +15,8 @@ class Robot:
         self.far_right_light_sensor = far_right_light_sensor
 
 
-        self.one_eighty_degree_turn_range = (2000, 3000)  # time in ms for robot to turn 180 degrees
-        self.ninety_degree_turn_range = (1000, 1500)  # time in ms for robot to turn 90 degrees
+        self.one_eighty_degree_turn_range = [1000, 1500]  # time in ms for robot to turn 180 degrees
+        self.ninety_degree_turn_range = [500, 700]  # time in ms for robot to turn 90 degrees
 
         self.has_box = False
         self.at_junction = False
@@ -35,11 +35,11 @@ class Robot:
     def Line_following(self):
         left_line, right_line, _, _ = self.Line_Sensor_readings()
         if left_line == 0 and right_line == 1:
-            print("Adjusting. Turning right.")
-            self.right_motor.speed -= 20
+            #print("Adjusting. Turning right.")
+            self.right_motor.speed -= 25
         if left_line == 1 and right_line == 0:
-            print("Adjusting. Turning left.")
-            self.left_motor.speed -= 20
+            #print("Adjusting. Turning left.")
+            self.left_motor.speed -= 25
         self.left_motor.update()
         self.right_motor.update()
     
@@ -82,7 +82,8 @@ class Robot:
         # LorR (Left or Right) is -1 for left and 1 for right.
         # time for robot's wheels to reach the line before turning
         # needs to be tested and adjusted for speed of robot
-        sleep_ms(0)
+        self.Drive(1, 100)
+        sleep_ms(500)
         if LorR == -1:
             print("Executing left turn (tank drive)")
             self.right_motor.on(dir=1, speed=100)
@@ -109,6 +110,8 @@ class Robot:
     def reverse_turn(self, turn):
         _, _, far_left_line, far_right_line = self.Line_Sensor_readings()
         # Reverses till junction
+        self.Drive(0, 100)
+        sleep_ms(1000)
         while far_left_line == far_right_line == 0:
             # Reverse
             self.Drive(0, 100)
@@ -120,25 +123,25 @@ class Robot:
 
     def motion_control(self):
         self.Forward_Until_Node(100)
-        self.turning_sequence(1)
+        print("turning")
+        check = self.turn(1)
+        print("turning complete")
         self.Forward_Until_Node(100)
-        self.one_eighty_degree_turn()
+        print("turning")
+        check = self.turn(1)
+        print("turning complete")
         self.Forward_Until_Node(100)
-        self.turning_sequence(-1)
+        self.reverse_turn(-1)
         self.Forward_Until_Node(100)
-        self.one_eighty_degree_turn()
+        self.turn(1)
+        
 
-        '''
-        if current_path == "left" or current_path == "right":
-            print(f"Detected a {current_path} turn.")
-            self.turning_sequence(current_path)
-        '''
-        self.Line_following()
     
     def update(self):
-        self.motion_control()
+        #self.motion_control()
         # Control frequency of robot update loop to prevent overloading the CPU (set to 50 Hz)
-        sleep_ms(20)
+        self.motion_control()
+        return False
     
     def reset(self):
         self.left_motor.off()
