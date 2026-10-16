@@ -7,7 +7,7 @@ class Crossroads:
         self.rack = rack #does this have somewhere to put a box?
 
 class Navigator:
-    def __init__(start, destination=None, orientation, robot, moving = False):
+    def __init__(self, start, destination=None, orientation, robot, moving = False):
         # 0-north, 1-east, 2-south, 3-west
         self.start = start
         self.destination = destination
@@ -54,27 +54,28 @@ class Navigator:
 # |     ┌-┰-┐     |	
 # L-----+-┸-+-----┘
 
-LWR1 = Crossroads([None, None, None, LWJ1], rack=True)
-LWR2 = Crossroads([None, None, None, LWJ2], rack=True)
-LWR3 = Crossroads([None, None, None, LWJ3], rack=True)
-LWR4 = Crossroads([None, None, None, LWJ4], rack=True)
-LWR5 = Crossroads([None, None, None, LWJ5], rack=True)
-LWR5 = Crossroads([None, None, None, LWJ6], rack=True)
+lwr1 = Crossroads([None, None, None, lw1], rack=True)
+lwr2 = Crossroads([None, None, None, lw2], rack=True)
+lwr3 = Crossroads([None, None, None, lw3], rack=True)
+lwr4 = Crossroads([None, None, None, lw4], rack=True)
+lwr5 = Crossroads([None, None, None, lw5], rack=True)
+lwr6 = Crossroads([None, None, None, lw6], rack=True)
 
-LER1 = Crossroads([None, LEJ1, None, None], rack=True)
-LER2 = Crossroads([None, LEJ2, None, None], rack=True)
-LER3 = Crossroads([None, LEJ3, None, None], rack=True)
-LER4 = Crossroads([None, LEJ4, None, None], rack=True)
-LER5 = Crossroads([None, LEJ5, None, None], rack=True)
-LER6 = Crossroads([None, LEJ6, None, None], rack=True)
+ler1 = Crossroads([None, lej1, None, None], rack=True)
+ler2 = Crossroads([None, lej2, None, None], rack=True)
+ler3 = Crossroads([None, lej3, None, None], rack=True)
+ler4 = Crossroads([None, lej4, None, None], rack=True)
+ler5 = Crossroads([None, lej5, None, None], rack=True)
+ler6 = Crossroads([None, lej6, None, None], rack=True)
 
-LWR1 = Crossroads([None, None, None, LWJ1], rack=True)
-LWR2 = Crossroads([None, None, None, LWJ2], rack=True)
-LWR3 = Crossroads([None, None, None, LWJ3], rack=True)
-LWR4 = Crossroads([None, None, None, LWJ4], rack=True)
-LWR5 = Crossroads([None, None, None, LWJ5], rack=True)
-LWR5 = Crossroads([None, None, None, LWJ6], rack=True)
+uwr1 = Crossroads([None, None, None, lwj1], rack=True)
+uwr2 = Crossroads([None, None, None, lwj2], rack=True)
+uwr3 = Crossroads([None, None, None, lwj3], rack=True)
+uwr4 = Crossroads([None, None, None, lwj4], rack=True)
+uwr5 = Crossroads([None, None, None, lwj5], rack=True)
+uwr6 = Crossroads([None, None, None, lwj6], rack=True)
 
 
 # we want the robot to have a start node and a destination node and to know what to do to get bw them
 #this requires knowledge of robot orientation and the geometry of the paths coming out of the node
+

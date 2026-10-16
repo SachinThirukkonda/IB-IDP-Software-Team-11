@@ -119,9 +119,15 @@ class Robot:
         self.turning_sequence(turn)
 
     def motion_control(self):
-        self.Drive(1, 100)
-        current_path = self.check_path()
-        print(current_path)
+        self.Forward_Until_Node(100)
+        self.turning_sequence(1)
+        self.Forward_Until_Node(100)
+        self.one_eighty_degree_turn()
+        self.Forward_Until_Node(100)
+        self.turning_sequence(-1)
+        self.Forward_Until_Node(100)
+        self.one_eighty_degree_turn()
+
         '''
         if current_path == "left" or current_path == "right":
             print(f"Detected a {current_path} turn.")

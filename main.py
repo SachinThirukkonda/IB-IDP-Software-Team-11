@@ -9,7 +9,7 @@ from robot import Robot
 
 def run(robot):
     """Main pipeline for the robot."""
-    robot.test_180()
+    robot.update()
 
 
 #button = Pin("GP22", Pin.IN, Pin.PULL_DOWN)
