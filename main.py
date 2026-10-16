@@ -9,7 +9,7 @@ from robot import Robot
 
 def run(robot):
     """Main pipeline for the robot."""
-    robot.update()
+    robot.test_180()
 
 
 #button = Pin("GP22", Pin.IN, Pin.PULL_DOWN)
@@ -17,8 +17,8 @@ def run(robot):
 left_motor = actuators.Motor(7, 6)
 right_motor = actuators.Motor(4, 5)
 
-forklift_servo = actuators.Servo(Pin(15), 0)
-claw_servo = actuators.Servo(Pin(16), 0)
+forklift_servo = actuators.Servo(Pin("GP15"), 0)
+claw_servo = actuators.Servo(Pin("GP15"), 0)
 
 left_light_sensor = sensors.Light_Sensor("GP11")
 right_light_sensor = sensors.Light_Sensor("GP12")
@@ -37,17 +37,14 @@ robot = Robot(
     far_right_light_sensor=far_right_light_sensor
     )
 
-running = True
 try:
     while True:
-        #print(button.value())
-        if running:
-            try:
-                run(robot)
-            except Exception as e:
-                print("Robot error:", e)
-                running = False
-                robot.reset()
+        try:
+            run(robot)
+        except Exception as e:
+            print("Robot error:", e)
+            running = False
+            robot.reset()
         sleep_ms(10)
 finally:
     print("Program ended")

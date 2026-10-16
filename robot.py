@@ -14,17 +14,16 @@ class Robot:
         self.far_left_light_sensor = far_left_light_sensor
         self.far_right_light_sensor = far_right_light_sensor
 
-        self.far_left_light_sensor = far_left_light_sensor
-        self.far_right_light_sensor = far_right_light_sensor
 
-        self.one_eighty_degree_turn_time = 1000  # time in ms for robot to turn 180 degrees
-        self.ninety_degree_turn_time = 500  # time in ms for robot to turn 90 degrees
+        self.one_eighty_degree_turn_range = (2000, 3000)  # time in ms for robot to turn 180 degrees
+        self.ninety_degree_turn_range = (1000, 1500)  # time in ms for robot to turn 90 degrees
 
         self.has_box = False
+        self.at_junction = False
     
-    def Drive_forward(self, speed):
-        self.left_motor.on(dir=1, speed=speed)
-        self.right_motor.on(dir=1, speed=speed)
+    def Drive(self, direction, speed):
+        self.left_motor.on(dir=direction, speed=speed)
+        self.right_motor.on(dir=direction, speed=speed)
 
     def Line_Sensor_readings(self):
         left_line = self.left_light_sensor.value()
@@ -59,43 +58,75 @@ class Robot:
             return "crossroads"
         else:
             return "straight"
+        
+    def is_at_junction(self):
+        left_line, right_line, far_left_line, far_right_line = self.Line_Sensor_readings()
+        if far_left_line == 1 or far_right_line == 1 or (left_line == 0 and right_line == 0):
+            self.at_junction = True
+            return True
+        return False
     
-    def turning_sequence(self, turn):
-        # Buffer time to ensure robot doesn't turn at a crossroads
-        # when moving at an angle to the line before the turn is executed.
-        # Needs to be tested and adjusted for speed of robot
-        sleep_ms(10)
-        if self.check_path() == turn:
-            # time for robot's wheels to reach the line before turning
-            # needs to be tested and adjusted for speed of robot
-            sleep_ms(0)
-            if turn == "left":
-                print("Executing left turn (tank drive)")
-                self.right_motor.on(dir=1, speed=100)
-                self.left_motor.on(dir=0, speed=100)
-            if turn == "right":
-                print("Executing right turn (tank drive)")
-                self.left_motor.on(dir=1, speed=100)
-                self.right_motor.on(dir=0, speed=100)
-            # Turns for a set time or until line is detected again. 
-            # rot_time is set as a safety in case the robot misses the line, to prevent it from continuing to turn indefinitely
-            line_detection(self.ninety_degree_turn_time, self.left_light_sensor, self.right_light_sensor)
+    def turn(self, LorR):
+        # LorR (Left or Right) is -1 for left and 1 for right.
+        turning_sequence(LorR)
+    
+    def Forward_Until_Node(self, speed):
+        while is_at_junction == False:
+            self.Drive(1, speed)
+            self.Line_following()
+            sleep_ms(20)
+        self.reset()
+        
+        
+    def turning_sequence(self, LorR):
+        # LorR (Left or Right) is -1 for left and 1 for right.
+        # time for robot's wheels to reach the line before turning
+        # needs to be tested and adjusted for speed of robot
+        sleep_ms(0)
+        if LorR == -1:
+            print("Executing left turn (tank drive)")
+            self.right_motor.on(dir=1, speed=100)
+            self.left_motor.on(dir=0, speed=100)
+        if LorR == 1:
+            print("Executing right turn (tank drive)")
+            self.left_motor.on(dir=1, speed=100)
+            self.right_motor.on(dir=0, speed=100)
+        # Turns for a set time or until line is detected again. 
+        # rot_range is set primarily to allow ensure the robot as approximately turned sufficiently
+        # (i.e. in case it detects a line somewhere before turning 90).
+        # It also acts as a safety in case the robot misses the line, to prevent it from continuing to turn indefinitely
+        line_detection(self.ninety_degree_turn_range, self.left_light_sensor, self.right_light_sensor)
 
     def one_eighty_degree_turn(self):
         print("Executing 180 degree turn (tank drive)")
-        self.left_motor.on(dir=1, speed=100)
-        self.right_motor.on(dir=0, speed=100)
+        self.left_motor.on(dir=1, speed=80)
+        self.right_motor.on(dir=0, speed=80)
         # Buffer time for line detection to ensure the robot doesn't immediately detect the line before turning 180 degrees. 
         # Needs to be tested and adjusted for speed of robot
         sleep_ms(100)
-        line_detection(self.one_eighty_degree_turn_time, self.left_light_sensor, self.right_light_sensor)
+        line_detection(self.one_eighty_degree_turn_range, self.left_light_sensor, self.right_light_sensor)
+
+    def reverse_turn(self, turn):
+        _, _, far_left_line, far_right_line = self.Line_Sensor_readings()
+        # Reverses till junction
+        while far_left_light_sensor == far_right_light_sensor == 0:
+            # Reverse
+            self.Drive(0, 100)
+            _, _, far_left_line, far_right_line = self.Line_Sensor_readings()
+            self.Line_following()
+            sleep(20)
+        # Carries out turn in the same manner as driving forwards.
+        turning_sequence(turn)
 
     def motion_control(self):
-        self.Drive_forward(100)
+        self.Drive(1, 100)
         current_path = self.check_path()
+        print(current_path)
+        '''
         if current_path == "left" or current_path == "right":
             print(f"Detected a {current_path} turn.")
             self.turning_sequence(current_path)
+        '''
         self.Line_following()
     
     def update(self):
@@ -122,17 +153,17 @@ class Robot:
         print("Move to 0°")
         self.forklift_servo.set_angle(0)
         self.claw_servo.set_angle(0)
-        sleep_ms(2)
+        sleep_ms(2000)
 
         print("Move to 135° (centre)")
         self.forklift_servo.set_angle(135)
         self.claw_servo.set_angle(135)
-        sleep_ms(2)
+        sleep_ms(2000)
 
         print("Move to 270°")
         self.forklift_servo.set_angle(270)
         self.claw_servo.set_angle(270)
-        sleep_ms(2)
+        sleep_ms(2000)
     
     def test_light_sensors(self):
         left_line = self.left_light_sensor.value()
@@ -141,6 +172,16 @@ class Robot:
         far_right_line = self.far_right_light_sensor.value()
         print(f"left_light_sensor: {left_line}, right_light_sensor: {right_line}, far_left_light_sensor: {far_left_line}, far_right_light_sensor: {far_right_line}")
         sleep_ms(100)
+        
+    def test_180(self):
+        left_line, right_line, _, _ = self.Line_Sensor_readings()
+        if left_line == right_line == 0:
+            self.one_eighty_degree_turn()
+        else:
+            self.Drive(1, 100)
+            self.Line_following()
+            sleep_ms(20)
+            
         
 
         
