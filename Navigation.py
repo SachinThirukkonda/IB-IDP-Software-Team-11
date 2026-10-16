@@ -42,6 +42,22 @@ class Navigator:
         self.Orient()
         self.robot.Forward_Until_Node(80)
 
+    def FollowRoute(self, route):
+        routeCopy = route
+        #set start to first node in route and destination to second
+        self.start = routeCopy.pop()
+        self.destination = routeCopy.pop()
+        #now loop through until route is empty:
+        while len(routeCopy >= 0):
+            #go to next node
+            NavStep()
+            #current node is now old destination
+            self.start = self.destination
+            #new destination is start of remaining route
+            self.destination = routeCopy.pop()
+        #at the end of this loop, route will be empty but we won't have gone to the last node. so
+        NavStep() #do the final step
+
 
 #map
 # |-             -|
@@ -139,6 +155,7 @@ lwj5.Update_neighbours([lwj4, lwr5, lwj6, None])
 lwj6.Update_neighbours([lwj5, lwr6, lwj7, None])
 lwj7.Update_neighbours([lwj6, lwb1, lwj8, None])
 lwj8.Update_neighbours([lwj7, lwb2, crsw, None])
+lwj9.Update_neighbours([None, strt, None, crsw])
 
 #lower eastern junctions
 lej1.Update_neighbours([ende, None, lej2, ler1])
@@ -149,8 +166,16 @@ lej5.Update_neighbours([lej4, None, lej6, ler5])
 lej6.Update_neighbours([lej5, None, lej7, ler6])
 lej7.Update_neighbours([lej6, None, lej8, leb1])
 lej8.Update_neighbours([lej7, None, crse, leb2])
+lej9.Update_neighbours([None, crse, None, strt])
 
+#corners
+crsw.Update_neighbours([lwj8, lwj9, None, None])
+crse.Update_neighbours([lej8, None, None, lej9])
 
+#specials
+endw.Update_neighbours([None, None, lwj1, None])
+ende.Update_neighbours([None, None, lej1, None])
+strt.Update_neighbours([None, lej9, None, lwj9])
 # we want the robot to have a start node and a destination node and to know what to do to get bw them
 #this requires knowledge of robot orientation and the geometry of the paths coming out of the node
 
