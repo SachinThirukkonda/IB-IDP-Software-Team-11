@@ -15,6 +15,9 @@ class Navigator:
         self.robot = robot
         self.moving = moving
 
+        def Update_neighbours(self, new_neighbours):
+            self.neighbours = new_neighbours
+
     def Orient(self):
         #find difference between own orientation and location of destination
         dest_orientation = self.start.neighbours.index(self.destination)
@@ -39,6 +42,22 @@ class Navigator:
         self.Orient()
         self.robot.Forward_Until_Node(80)
 
+    def FollowRoute(self, route):
+        routeCopy = route
+        #set start to first node in route and destination to second
+        self.start = routeCopy.pop()
+        self.destination = routeCopy.pop()
+        #now loop through until route is empty:
+        while len(routeCopy >= 0):
+            #go to next node
+            self.NavStep()
+            #current node is now old destination
+            self.start = self.destination
+            #new destination is start of remaining route
+            self.destination = routeCopy.pop()
+        #at the end of this loop, route will be empty but we won't have gone to the last node. so
+        self.NavStep() #do the final step
+
 
 #map
 # |-             -|
@@ -54,28 +73,110 @@ class Navigator:
 # |     ┌-┰-┐     |	
 # L-----+-┸-+-----┘
 
-lwr1 = Crossroads([None, None, None, lw1], rack=True)
-lwr2 = Crossroads([None, None, None, lw2], rack=True)
-lwr3 = Crossroads([None, None, None, lw3], rack=True)
-lwr4 = Crossroads([None, None, None, lw4], rack=True)
-lwr5 = Crossroads([None, None, None, lw5], rack=True)
-lwr6 = Crossroads([None, None, None, lw6], rack=True)
+#DECLARING NODES
 
+#lower west junctions
+lwj1 = Crossroads([])
+lwj2 = Crossroads([])
+lwj3 = Crossroads([])
+lwj4 = Crossroads([])
+lwj5 = Crossroads([])
+lwj6 = Crossroads([])
+lwj7 = Crossroads([])
+lwj8 = Crossroads([])
+lwj9 = Crossroads([])
+
+#lower east junctions
+lej1 = Crossroads([])
+lej2 = Crossroads([])
+lej3 = Crossroads([])
+lej4 = Crossroads([])
+lej5 = Crossroads([])
+lej6 = Crossroads([])
+lej7 = Crossroads([])
+lej8 = Crossroads([])
+lej9 = Crossroads([])
+
+#specials
+strt = Crossroads([])
+crse = Crossroads([])
+crsw = Crossroads([])
+ende = Crossroads([])
+endw = Crossroads([])
+
+#lower west racks
+lwr1 = Crossroads([None, None, None, lwj1], rack=True)
+lwr2 = Crossroads([None, None, None, lwj2], rack=True)
+lwr3 = Crossroads([None, None, None, lwj3], rack=True)
+lwr4 = Crossroads([None, None, None, lwj4], rack=True)
+lwr5 = Crossroads([None, None, None, lwrj], rack=True)
+lwr6 = Crossroads([None, None, None, lwj6], rack=True)
+#lower west boxes
+lwb1 = Crossroads([], occupied = True)
+lwb2 = Crossroads([], occupied = True)
+#lower east racks
 ler1 = Crossroads([None, lej1, None, None], rack=True)
 ler2 = Crossroads([None, lej2, None, None], rack=True)
 ler3 = Crossroads([None, lej3, None, None], rack=True)
 ler4 = Crossroads([None, lej4, None, None], rack=True)
 ler5 = Crossroads([None, lej5, None, None], rack=True)
 ler6 = Crossroads([None, lej6, None, None], rack=True)
+#lower east boxes
+leb1 = Crossroads([], occupied = True)
+leb2 = Crossroads([], occupied = True)
 
-uwr1 = Crossroads([None, None, None, lwj1], rack=True)
-uwr2 = Crossroads([None, None, None, lwj2], rack=True)
-uwr3 = Crossroads([None, None, None, lwj3], rack=True)
-uwr4 = Crossroads([None, None, None, lwj4], rack=True)
-uwr5 = Crossroads([None, None, None, lwj5], rack=True)
-uwr6 = Crossroads([None, None, None, lwj6], rack=True)
+#CONNECTING NODES
+#lower western racks
+lwr1.Update_neighbours([None, None, None, lwj1])
+lwr2.Update_neighbours([None, None, None, lwj2])
+lwr3.Update_neighbours([None, None, None, lwj3])
+lwr4.Update_neighbours([None, None, None, lwj4])
+lwr5.Update_neighbours([None, None, None, lwj5])
+lwr6.Update_neighbours([None, None, None, lwj6])
+#lower western boxes
+lwb1.Update_neighbours([None, None, None, lwj7])
+lwb2.Update_neighbours([None, None, None, lwj8])
+#lower eastern racks
+ler1.Update_neighbours([None, lej1, None, None])
+ler2.Update_neighbours([None, lej2, None, None])
+ler3.Update_neighbours([None, lej3, None, None])
+ler4.Update_neighbours([None, lej4, None, None])
+ler5.Update_neighbours([None, lej5, None, None])
+ler6.Update_neighbours([None, lej6, None, None])
+#lower eastern boxes
+leb1.Update_neighbours([None, lej7, None, None])
+leb2.Update_neighbours([None, lej8, None, None])
 
+#lower western junctions
+lwj1.Update_neighbours([endw, lwr1, lwj2, None])
+lwj2.Update_neighbours([lwj1, lwr2, lwj3, None])
+lwj3.Update_neighbours([lwj2, lwr3, lwj4, None])
+lwj4.Update_neighbours([lwj3, lwr4, lwj5, None])
+lwj5.Update_neighbours([lwj4, lwr5, lwj6, None])
+lwj6.Update_neighbours([lwj5, lwr6, lwj7, None])
+lwj7.Update_neighbours([lwj6, lwb1, lwj8, None])
+lwj8.Update_neighbours([lwj7, lwb2, crsw, None])
+lwj9.Update_neighbours([None, strt, None, crsw])
 
+#lower eastern junctions
+lej1.Update_neighbours([ende, None, lej2, ler1])
+lej2.Update_neighbours([lej1, None, lej3, ler2])
+lej3.Update_neighbours([lej2, None, lej4, ler3])
+lej4.Update_neighbours([lej3, None, lej5, ler4])
+lej5.Update_neighbours([lej4, None, lej6, ler5])
+lej6.Update_neighbours([lej5, None, lej7, ler6])
+lej7.Update_neighbours([lej6, None, lej8, leb1])
+lej8.Update_neighbours([lej7, None, crse, leb2])
+lej9.Update_neighbours([None, crse, None, strt])
+
+#corners
+crsw.Update_neighbours([lwj8, lwj9, None, None])
+crse.Update_neighbours([lej8, None, None, lej9])
+
+#specials
+endw.Update_neighbours([None, None, lwj1, None])
+ende.Update_neighbours([None, None, lej1, None])
+strt.Update_neighbours([None, lej9, None, lwj9])
 # we want the robot to have a start node and a destination node and to know what to do to get bw them
 #this requires knowledge of robot orientation and the geometry of the paths coming out of the node
 
