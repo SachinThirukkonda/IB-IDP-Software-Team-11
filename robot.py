@@ -68,10 +68,10 @@ class Robot:
     
     def turn(self, LorR):
         # LorR (Left or Right) is -1 for left and 1 for right.
-        turning_sequence(LorR)
+        self.turning_sequence(LorR)
     
     def Forward_Until_Node(self, speed):
-        while is_at_junction == False:
+        while self.is_at_junction() == False:
             self.Drive(1, speed)
             self.Line_following()
             sleep_ms(20)
@@ -109,14 +109,14 @@ class Robot:
     def reverse_turn(self, turn):
         _, _, far_left_line, far_right_line = self.Line_Sensor_readings()
         # Reverses till junction
-        while far_left_light_sensor == far_right_light_sensor == 0:
+        while far_left_line == far_right_line == 0:
             # Reverse
             self.Drive(0, 100)
             _, _, far_left_line, far_right_line = self.Line_Sensor_readings()
             self.Line_following()
-            sleep(20)
+            sleep_ms(20)
         # Carries out turn in the same manner as driving forwards.
-        turning_sequence(turn)
+        self.turning_sequence(turn)
 
     def motion_control(self):
         self.Drive(1, 100)
