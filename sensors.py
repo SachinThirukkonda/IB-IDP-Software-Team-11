@@ -1,4 +1,4 @@
-from machine import Pin, I2C
+from machine import Pin, I2C, ADC
 from libs.VL53L0X.VL53L0X import VL53L0X
 
 class Light_Sensor:
@@ -11,6 +11,21 @@ class Light_Sensor:
     def test(self):
         reading = self.light_sensor.value()
         print(f"Reading: {reading}")
+
+class Magnetometer:
+    def __init__(self, pin):
+            self.magnetometer = ADC(pin)
+        
+    def value(self):
+        return self.magnetometer.read_u16()
+    
+    def test(self):
+        reading = self.magnetometer.read_u16()
+        print(f"Reading: {reading}")
+
+    def plot(self):
+        reading = self.magnetometer.read_u16()
+        print(f"{reading}")
 
 class Distance_Sensor:
     def __init__(self, sda, scl):

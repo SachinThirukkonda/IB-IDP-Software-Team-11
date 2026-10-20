@@ -9,7 +9,7 @@ from robot import Robot
 
 def run(robot):
     """Main pipeline for the robot."""
-    return robot.update()
+    return robot.test_magnetometer()
 
 
 #button = Pin("GP22", Pin.IN, Pin.PULL_DOWN)
@@ -26,6 +26,8 @@ right_light_sensor = sensors.Light_Sensor("GP12")
 far_left_light_sensor = sensors.Light_Sensor("GP10")
 far_right_light_sensor = sensors.Light_Sensor("GP13")
 
+magnetometer = sensors.Magnetometer(28)
+
 robot = Robot(
     left_motor=left_motor,
     right_motor=right_motor,
@@ -34,7 +36,8 @@ robot = Robot(
     left_light_sensor=left_light_sensor,
     right_light_sensor=right_light_sensor,
     far_left_light_sensor=far_left_light_sensor,
-    far_right_light_sensor=far_right_light_sensor
+    far_right_light_sensor=far_right_light_sensor,
+    magnetometer=magnetometer
     )
 
 running = True
