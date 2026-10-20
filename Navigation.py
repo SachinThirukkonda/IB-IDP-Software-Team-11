@@ -1,10 +1,14 @@
-from utime import sleep_ms 
+from box import box
+from collections import deque
+
 class Crossroads:
-    def __init__(self, neighbours, occupied = False, rack = False):
+    def __init__(self, name, neighbours, occupied = False, rack = False):
         #neighbours are [north node, east node, south node, west node]
         self.neighbours = neighbours
         self.occupied = occupied #does this have a box?
         self.rack = rack #does this have somewhere to put a box?
+        self.name = name
+        self.label = name.split()
 
     def Update_neighbours(self, new_neighbours):
         self.neighbours = new_neighbours
@@ -78,81 +82,87 @@ class Navigator:
 
 #DECLARING NODES
 
-#lower west junctions
-lwj1 = Crossroads([])
-lwj2 = Crossroads([])
-lwj3 = Crossroads([])
-lwj4 = Crossroads([])
-lwj5 = Crossroads([])
-lwj6 = Crossroads([])
-lwj7 = Crossroads([])
-lwj8 = Crossroads([])
-lwj9 = Crossroads([])
+# lower west junctions
+lwj1 = Crossroads("lwj1", [])
+lwj2 = Crossroads("lwj2", [])
+lwj3 = Crossroads("lwj3", [])
+lwj4 = Crossroads("lwj4", [])
+lwj5 = Crossroads("lwj5", [])
+lwj6 = Crossroads("lwj6", [])
+lwj7 = Crossroads("lwj7", [])
+lwj8 = Crossroads("lwj8", [])
+lwj9 = Crossroads("lwj9", [])
 
-#lower east junctions
-lej1 = Crossroads([])
-lej2 = Crossroads([])
-lej3 = Crossroads([])
-lej4 = Crossroads([])
-lej5 = Crossroads([])
-lej6 = Crossroads([])
-lej7 = Crossroads([])
-lej8 = Crossroads([])
-lej9 = Crossroads([])
+# lower east junctions
+lej1 = Crossroads("lej1", [])
+lej2 = Crossroads("lej2", [])
+lej3 = Crossroads("lej3", [])
+lej4 = Crossroads("lej4", [])
+lej5 = Crossroads("lej5", [])
+lej6 = Crossroads("lej6", [])
+lej7 = Crossroads("lej7", [])
+lej8 = Crossroads("lej8", [])
+lej9 = Crossroads("lej9", [])
 
-#upper junctions
-ucj1 = Crossroads([])
-ucj2 = Crossroads([])
-ucj3 = Crossroads([])
-ucj4 = Crossroads([])
-ucj5 = Crossroads([])
-ucj6 = Crossroads([])
+# upper junctions
+ucj1 = Crossroads("ucj1", [])
+ucj2 = Crossroads("ucj2", [])
+ucj3 = Crossroads("ucj3", [])
+ucj4 = Crossroads("ucj4", [])
+ucj5 = Crossroads("ucj5", [])
+ucj6 = Crossroads("ucj6", [])
 
-#specials
-strt = Crossroads([])
-crse = Crossroads([])
-crsw = Crossroads([])
-ende = Crossroads([])
-endw = Crossroads([])
-endu = Crossroads([])     # End of upper part
-lccj = Crossroads([])     # Just north of start
-lcej = Crossroads([])     # Just northeast of start
-lcwj = Crossroads([])     # Just northwest of start
+# specials
+strt = Crossroads("strt", [])
+crse = Crossroads("crse", [])
+crsw = Crossroads("crsw", [])
+ende = Crossroads("ende", [])
+endw = Crossroads("endw", [])
+endu = Crossroads("endu", [])  # End of upper part
+lccj = Crossroads("lccj", [])  # Just north of start
+lcej = Crossroads("lcej", [])  # Just northeast of start
+lcwj = Crossroads("lcwj", [])  # Just northwest of start
 
-#lower west racks
-lwr1 = Crossroads([None, None, None, lwj1], rack=True)
-lwr2 = Crossroads([None, None, None, lwj2], rack=True)
-lwr3 = Crossroads([None, None, None, lwj3], rack=True)
-lwr4 = Crossroads([None, None, None, lwj4], rack=True)
-lwr5 = Crossroads([None, None, None, lwj5], rack=True)
-lwr6 = Crossroads([None, None, None, lwj6], rack=True)
-#lower west boxes
-lwb1 = Crossroads([], occupied = True)
-lwb2 = Crossroads([], occupied = True)
-#lower east racks
-ler1 = Crossroads([None, lej1, None, None], rack=True)
-ler2 = Crossroads([None, lej2, None, None], rack=True)
-ler3 = Crossroads([None, lej3, None, None], rack=True)
-ler4 = Crossroads([None, lej4, None, None], rack=True)
-ler5 = Crossroads([None, lej5, None, None], rack=True)
-ler6 = Crossroads([None, lej6, None, None], rack=True)
-#lower east boxes
-leb1 = Crossroads([], occupied = True)
-leb2 = Crossroads([], occupied = True)
-#upper west racks
-uwr1=Crossroads([], rack=True)
-uwr2=Crossroads([], rack=True)
-uwr3=Crossroads([], rack=True)
-uwr4=Crossroads([], rack=True)
-uwr5=Crossroads([], rack=True)
-uwr6=Crossroads([], rack=True)
-#upper east racks
-uer1=Crossroads([], rack=True)
-uer2=Crossroads([], rack=True)
-uer3=Crossroads([], rack=True)
-uer4=Crossroads([], rack=True)
-uer5=Crossroads([], rack=True)
-uer6=Crossroads([], rack=True)
+# lower west racks
+lwr1 = Crossroads("lwr1", [None, None, None, lwj1], rack=True)
+lwr2 = Crossroads("lwr2", [None, None, None, lwj2], rack=True)
+lwr3 = Crossroads("lwr3", [None, None, None, lwj3], rack=True)
+lwr4 = Crossroads("lwr4", [None, None, None, lwj4], rack=True)
+lwr5 = Crossroads("lwr5", [None, None, None, lwj5], rack=True)
+lwr6 = Crossroads("lwr6", [None, None, None, lwj6], rack=True)
+
+# lower west boxes
+lwb1 = Crossroads("lwb1", [], occupied=True)
+lwb2 = Crossroads("lwb2", [], occupied=True)
+
+# lower east racks
+ler1 = Crossroads("ler1", [None, lej1, None, None], rack=True)
+ler2 = Crossroads("ler2", [None, lej2, None, None], rack=True)
+ler3 = Crossroads("ler3", [None, lej3, None, None], rack=True)
+ler4 = Crossroads("ler4", [None, lej4, None, None], rack=True)
+ler5 = Crossroads("ler5", [None, lej5, None, None], rack=True)
+ler6 = Crossroads("ler6", [None, lej6, None, None], rack=True)
+
+# lower east boxes
+leb1 = Crossroads("leb1", [], occupied=True)
+leb2 = Crossroads("leb2", [], occupied=True)
+
+# upper west racks
+uwr1 = Crossroads("uwr1", [], rack=True)
+uwr2 = Crossroads("uwr2", [], rack=True)
+uwr3 = Crossroads("uwr3", [], rack=True)
+uwr4 = Crossroads("uwr4", [], rack=True)
+uwr5 = Crossroads("uwr5", [], rack=True)
+uwr6 = Crossroads("uwr6", [], rack=True)
+
+# upper east racks
+uer1 = Crossroads("uer1", [], rack=True)
+uer2 = Crossroads("uer2", [], rack=True)
+uer3 = Crossroads("uer3", [], rack=True)
+uer4 = Crossroads("uer4", [], rack=True)
+uer5 = Crossroads("uer5", [], rack=True)
+uer6 = Crossroads("uer6", [], rack=True)
+
 
 #CONNECTING NODES
 #lower western racks
@@ -239,3 +249,27 @@ lcwj.Update_neighbours([None, lccj, lwj9, None])
 # we want the robot to have a start node and a destination node and to know what to do to get bw them
 #this requires knowledge of robot orientation and the geometry of the paths coming out of the node
 
+def find_route(strt, end):
+
+    queue = deque([strt])
+    came_from = {strt: None}
+
+    while queue:
+        node = queue.popleft()
+        if node == end: 
+            break
+        
+        for nxt in node.neighbours():
+            if nxt is not None and nxt not in came_from:
+                came_from[nxt] = node
+                queue.append(nxt)
+
+    route = []
+    node = end
+
+    while node is not None:
+        route.append(node)
+        node = came_from[node]
+    
+    route.reverse
+    return route

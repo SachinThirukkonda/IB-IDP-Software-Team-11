@@ -1,7 +1,13 @@
 from utime import sleep_ms, ticks_ms
 from helper import line_detection
+from Navigation import Navigator
+
+
+
 class Robot:
-    def __init__(self, left_motor, right_motor, forklift_servo, claw_servo, left_light_sensor, right_light_sensor, far_left_light_sensor, far_right_light_sensor, magnetometer=None):
+    def __init__(self, left_motor, right_motor, forklift_servo, claw_servo, 
+                 left_light_sensor, right_light_sensor, far_left_light_sensor, far_right_light_sensor,
+                 magnetometer = None, current_nav = None):
         self.left_motor = left_motor
         self.right_motor = right_motor
 
@@ -22,7 +28,8 @@ class Robot:
 
         self.has_box = False
         self.at_junction = False
-        self.magnetometer_readings = []
+
+        self.current_nav = current_nav
     
     def Drive(self, direction, speed):
         self.left_motor.on(dir=direction, speed=speed)
@@ -78,15 +85,15 @@ class Robot:
             self.Drive(1, speed)
             self.Line_following()
             sleep_ms(20)
-        sleep_ms(150)
         self.reset()
+        
         
     def turning_sequence(self, LorR):
         # LorR (Left or Right) is -1 for left and 1 for right.
         # time for robot's wheels to reach the line before turning
         # needs to be tested and adjusted for speed of robot
         self.Drive(1, 100)
-        sleep_ms(400)
+        sleep_ms(500)
         if LorR == -1:
             print("Executing left turn (tank drive)")
             self.right_motor.on(dir=1, speed=100)
@@ -119,6 +126,7 @@ class Robot:
             _, _, far_left_line, far_right_line = self.Line_Sensor_readings()
             self.Line_following()
             sleep_ms(20)
+        
         while far_left_line == far_right_line == 0:
             # Reverse
             self.Drive(0, 100)
@@ -132,49 +140,27 @@ class Robot:
 
     def motion_control(self):
         self.Forward_Until_Node(100)
-        self.Forward_Until_Node(100)
         print("turning")
-        check = self.turn(-1)
-        '''
-        if not check:
-            self.find_line()
-        '''
+        check = self.turn(1)
         print("turning complete")
-        self.Forward_Until_Node(100)
-        print("turning")
-        check = self.turn(-1)
-        print("turning complete")
-        self.Forward_Until_Node(100)
-        self.reverse_turn(1)
-        self.Forward_Until_Node(100)
-        self.Forward_Until_Node(100)
-        self.Forward_Until_Node(100)
-        print("turning")
-        check = self.turn(-1)
-        print("turning complete")
-        self.Forward_Until_Node(100)
-        self.reverse_turn(-1)
-        self.Forward_Until_Node(100)
-        self.Forward_Until_Node(100)
-        self.Forward_Until_Node(100)
-        self.Forward_Until_Node(100)
         self.Forward_Until_Node(100)
         print("turning")
         check = self.turn(1)
         print("turning complete")
         self.Forward_Until_Node(100)
         self.Forward_Until_Node(100)
+        self.reverse_turn(-1)
+        self.turn(1)
+        
 
-
-
-
-
+    
+    def step(self):
 
     
     def update(self):
-        #self.motion_control()
-        # Control frequency of robot update loop to prevent overloading the CPU (set to 50 Hz)
         self.motion_control()
+        # Control frequency of robot update loop to prevent overloading the CPU (set to 50 Hz)
+
         return False
     
     def reset(self):
@@ -191,7 +177,6 @@ class Robot:
         self.left_motor.on(dir=0, speed=100)
         self.right_motor.on(dir=0, speed=100)
         sleep_ms(10)
-        return True
     
     def test_servos(self):
         print("Move to 0°")
@@ -208,7 +193,6 @@ class Robot:
         self.forklift_servo.set_angle(270)
         self.claw_servo.set_angle(270)
         sleep_ms(2000)
-        return True
     
     def test_light_sensors(self):
         left_line = self.left_light_sensor.value()
@@ -217,7 +201,6 @@ class Robot:
         far_right_line = self.far_right_light_sensor.value()
         print(f"left_light_sensor: {left_line}, right_light_sensor: {right_line}, far_left_light_sensor: {far_left_line}, far_right_light_sensor: {far_right_line}")
         sleep_ms(100)
-        return True
         
     def test_180(self):
         left_line, right_line, _, _ = self.Line_Sensor_readings()
@@ -228,13 +211,8 @@ class Robot:
             self.Line_following()
             sleep_ms(20)
             
-    def test_magnetometer(self):
-        if self.magnetometer is not None:
-            self.magnetometer.plot()
-            return True
-        else:
-            print("Magnetometer not initialized.")
-            return False
+        
+
         
         
         
