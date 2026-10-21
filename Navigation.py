@@ -95,6 +95,7 @@ class Navigator:
         self.route = route
 
 
+        
     def get_route(self, polarity):  # Not pretty, potentially rethink
         
         if self.robot.has_box == True:

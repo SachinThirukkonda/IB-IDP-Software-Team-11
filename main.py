@@ -12,10 +12,10 @@ import Navigation as m
 def run(robot):
     """Main pipeline for the robot."""
     
-    return robot.test_magnetometer()
-
+    return robot.test_servos()
 
 button = Pin("GP21", Pin.IN, Pin.PULL_DOWN)
+running = False
 
 left_motor = actuators.Motor(7, 6)
 right_motor = actuators.Motor(4, 5)
@@ -30,7 +30,17 @@ far_right_light_sensor = sensors.Light_Sensor("GP13")
 
 magnetometer = sensors.Magnetometer(28)
 
+robot_kwargs = {
+    "one_eighty_degree_turn_range": [1000, 1500],  # time in ms for robot to turn 180 degrees
+    "ninety_degree_turn_range": [500, 700],  # time in ms for robot to turn 90 degrees
+    "motor_correction": 25,  # Amount to adjust motor speed for line following
+    "turning_sleep_time": 500,  # Sleep time during turning actions
+    "reverse_turning_sleep_time": 550,  # Sleep time during reverse turning actions
+    "control_frequency": 50  # Control frequency in Hz
+}
+
 robot = Robot(
+    parameters=robot_kwargs,
     left_motor=left_motor,
     right_motor=right_motor,
     forklift_servo=forklift_servo,
@@ -43,7 +53,7 @@ robot = Robot(
 navigator = Navigator(robot=robot, strt = m.strt)
 
 
-running = False
+
 
 while True:
     if button.value() == 1 and running == False:
@@ -54,7 +64,7 @@ while True:
     if button.value() == 1 and running == True:
         print("Button pressed. Stopping robot.")
         sleep_ms(1000)  # Debounce delay
-        running = False
+        running = False    
         
 
     try:
