@@ -12,16 +12,16 @@ import Navigation as m
 def run(robot):
     """Main pipeline for the robot."""
     
-    return robot.test_servos()
+    return robot.open_close()
 
 button = Pin("GP21", Pin.IN, Pin.PULL_DOWN)
-running = False
+running = True
 
 left_motor = actuators.Motor(7, 6)
 right_motor = actuators.Motor(4, 5)
 
-forklift_servo = actuators.Servo(Pin("GP15"), 0)
-claw_servo = actuators.Servo(Pin("GP15"), 0)
+forklift_servo = actuators.Servo(Pin("GP15"), 0, 20)
+claw_servo = actuators.Servo(Pin("GP15"), 0, 20)
 
 left_light_sensor = sensors.Light_Sensor("GP11")
 right_light_sensor = sensors.Light_Sensor("GP12")
@@ -36,7 +36,10 @@ robot_kwargs = {
     "motor_correction": 25,  # Amount to adjust motor speed for line following
     "turning_sleep_time": 500,  # Sleep time during turning actions
     "reverse_turning_sleep_time": 550,  # Sleep time during reverse turning actions
-    "control_frequency": 50  # Control frequency in Hz
+    "control_frequency": 50,  # Control frequency in Hz
+    "claw_open_angle": 180,  # 
+    "forklift_lower_angle": -120,
+    "forklift_raise_angle": 45
 }
 
 robot = Robot(
@@ -54,7 +57,14 @@ navigator = Navigator(robot=robot)
 
 
 
-
+while running:
+            try:
+                running = run(robot)
+            except Exception as e:
+                print("Robot error:", e)
+                running = False
+                robot.reset()
+            sleep_ms(10)
 while True:
     if button.value() == 1 and running == False:
         print("Button pressed. Starting robot.")

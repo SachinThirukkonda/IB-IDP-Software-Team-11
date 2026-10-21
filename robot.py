@@ -154,9 +154,9 @@ class Robot:
         box_polarity = self.move_to_box(30) 
 
         #Close claws on box and lift it up       
-        self.claw_servo.set_angle(0)
+        self.claw_servo.set_angle()
         sleep_ms(500)
-        self.forklift_servo.set_angle(0)
+        self.forklift_servo.set_angle()
         
         return box_polarity
 
@@ -196,6 +196,9 @@ class Robot:
         self.reverse_turning_sleep_time = 550  # Sleep time during reverse turning actions
         self.control_frequency = 50  # Control frequency in Hz
         self.control_period = 1000 // self.control_frequency  # Control period in ms
+        self.claw_open_angle = 20
+        self.forklift_lower_angle = -120
+        self.forklift_raise_angle = 45
 
         # Change any default values to custom values for specified hyperparameters
         for param, val in parameters.items():
@@ -233,6 +236,12 @@ class Robot:
         self.claw_servo.set_angle(270)
         sleep_ms(2000)
         return True
+
+    def open_close(self):
+        self.claw_servo.set_angle(self.claw_open_angle)
+        sleep_ms(1000)
+        self.claw_servo.reset()
+        sleep_ms(1000)
     
     def test_light_sensors(self):
         left_line = self.left_light_sensor.value()
