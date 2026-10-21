@@ -240,9 +240,11 @@ class Robot:
 
     
             
-        
 
-        
-        
-        
-        
+    def test_magnetometer(self):        
+        if self.magnetometer is not None:           
+            self.magnetometer.plot()           
+            self.magnetometer.test()           
+            return True      
+        else:            
+            print("Magnetometer not initialized.")
