@@ -1,7 +1,7 @@
 from utime import sleep_ms, ticks_ms
 from helper import line_detection
 class Robot:
-    def __init__(self, left_motor, right_motor, forklift_servo, claw_servo, left_light_sensor, right_light_sensor, far_left_light_sensor, far_right_light_sensor, magnetometer=None):
+    def __init__(self, left_motor, right_motor, forklift_servo, claw_servo, left_light_sensor, right_light_sensor, far_left_light_sensor, far_right_light_sensor, magnetometer):
         self.left_motor = left_motor
         self.right_motor = right_motor
 
@@ -130,6 +130,34 @@ class Robot:
         sleep_ms(50)
         self.turning_sequence(turn)
 
+    def collect_box(self):
+        while self.magnetometer.value() == 0:
+            self.Drive(1, 30)
+            self.Line_following()
+            sleep_ms(20)
+            polarity = self.magnetometer.value()
+        self.reset()
+        self.forklift_servo.set_angle(0)
+        self.claw_servo.set_angle(0)
+        sleep_ms(1000)
+        self.forklift_servo.set_angle(135)
+        sleep_ms(1000)
+        self.claw_servo.set_angle(135)
+        sleep_ms(1000)
+        self.has_box = True
+        return polarity
+
+    def drop_box(self):
+        self.forklift_servo.set_angle(0)
+        sleep_ms(1000)
+        self.claw_servo.set_angle(270)
+        sleep_ms(1000)
+        self.forklift_servo.set_angle(135)
+        sleep_ms(1000)
+        self.claw_servo.set_angle(135)
+        sleep_ms(1000)
+        self.has_box = False
+
     def motion_control(self):
         self.Forward_Until_Node(100)
         self.Forward_Until_Node(100)
@@ -164,12 +192,6 @@ class Robot:
         print("turning complete")
         self.Forward_Until_Node(100)
         self.Forward_Until_Node(100)
-
-
-
-
-
-
     
     def update(self):
         #self.motion_control()
@@ -230,7 +252,7 @@ class Robot:
             
     def test_magnetometer(self):
         if self.magnetometer is not None:
-            self.magnetometer.plot()
+            self.magnetometer.test()
             return True
         else:
             print("Magnetometer not initialized.")

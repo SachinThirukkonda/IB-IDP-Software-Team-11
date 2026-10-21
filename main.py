@@ -9,10 +9,10 @@ from robot import Robot
 
 def run(robot):
     """Main pipeline for the robot."""
-    return robot.test_magnetometer()
+    return True
 
 
-#button = Pin("GP22", Pin.IN, Pin.PULL_DOWN)
+button = Pin("GP21", Pin.IN, Pin.PULL_DOWN)
 
 left_motor = actuators.Motor(7, 6)
 right_motor = actuators.Motor(4, 5)
@@ -40,16 +40,28 @@ robot = Robot(
     magnetometer=magnetometer
     )
 
-running = True
-try:
-    while running:
-        try:
-            running = run(robot)
-        except Exception as e:
-            print("Robot error:", e)
-            running = False
-            robot.reset()
-        sleep_ms(10)
-finally:
-    print("Program ended")
-    robot.reset()
+running = False
+
+while True:
+    if button.value() == 1 and running == False:
+        print("Button pressed. Starting robot.")
+        sleep_ms(1000)  # Debounce delay
+        running = True
+        
+    if button.value() == 1 and running == True:
+        print("Button pressed. Stopping robot.")
+        sleep_ms(1000)  # Debounce delay
+        running = False
+        
+
+    try:
+        while running:
+            try:
+                running = run(robot)
+            except Exception as e:
+                print("Robot error:", e)
+                running = False
+                robot.reset()
+            sleep_ms(10)
+    finally:
+        robot.reset()
