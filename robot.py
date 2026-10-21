@@ -199,7 +199,7 @@ class Robot:
 
         # Change any default values to custom values for specified hyperparameters
         for param, val in parameters.items():
-            exec('self.' + param + ' = ' + str(val))
+            setattr(self, param, val)
 
     '''
     Test Functions

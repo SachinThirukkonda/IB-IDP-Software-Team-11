@@ -93,7 +93,7 @@ class Navigator:
 
 
     def get_start_end(self):
-        
+        pass
 
 
 

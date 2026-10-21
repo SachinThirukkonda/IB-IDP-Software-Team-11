@@ -12,8 +12,7 @@ import Navigation as m
 def run(robot):
     """Main pipeline for the robot."""
     
-    return robot.test_magnetometer()
-
+    return robot.test_servos()
 
 button = Pin("GP21", Pin.IN, Pin.PULL_DOWN)
 running = False
@@ -57,17 +56,15 @@ navigator = Navigator(robot=robot)
 
 
 while True:
-    if button != None:
-
-        if button.value() == 1 and running == False:
-            print("Button pressed. Starting robot.")
-            sleep_ms(1000)  # Debounce delay
-            running = True
-            
-        if button.value() == 1 and running == True:
-            print("Button pressed. Stopping robot.")
-            sleep_ms(1000)  # Debounce delay
-            running = False
+    if button.value() == 1 and running == False:
+        print("Button pressed. Starting robot.")
+        sleep_ms(1000)  # Debounce delay
+        running = True
+        
+    if button.value() == 1 and running == True:
+        print("Button pressed. Stopping robot.")
+        sleep_ms(1000)  # Debounce delay
+        running = False    
         
 
     try:
