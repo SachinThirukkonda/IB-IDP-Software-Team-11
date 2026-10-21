@@ -12,11 +12,6 @@ import Navigation as m
 def run(robot):
     """Main pipeline for the robot."""
     
-    counter=0
-    if counter==0:
-        navigator.find_route(m.strt, m.lwr2)
-        print(navigator.route)
-    
     return robot.test_magnetometer()
 
 
@@ -45,7 +40,7 @@ robot = Robot(
     far_left_light_sensor=far_left_light_sensor,
     far_right_light_sensor=far_right_light_sensor,
     magnetometer=magnetometer)
-navigator = Navigator(robot=robot)
+navigator = Navigator(robot=robot, strt = m.strt)
 
 
 running = False
