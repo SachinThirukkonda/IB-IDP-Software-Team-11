@@ -15,17 +15,36 @@ class Light_Sensor:
 class Magnetometer:
     def __init__(self, pin):
             self.magnetometer = ADC(pin)
+            self.window_size = 10  # Number of samples to average
+            self.samples = []
         
     def value(self):
-        return self.magnetometer.read_u16()
+        ordered = sorted(self.samples)
+        value = ordered[len(ordered) // 2]
+        if value > 38000:
+            return 1
+        elif value < 32000:
+            return -1
+        else:
+            return 0
+
+    def update(self):
+        reading = self.magnetometer.read_u16()
+        self.samples.append(reading)
+
+        if len(self.samples) > self.window_size:
+            self.samples.pop(0)
     
     def test(self):
         reading = self.magnetometer.read_u16()
-        print(f"Reading: {reading}")
+        self.samples.append(reading)
 
-    def plot(self):
-        reading = self.magnetometer.read_u16()
-        print(f"{reading}")
+        if len(self.samples) > self.window_size:
+            self.samples.pop(0)
+
+        ordered = sorted(self.samples)
+        print(ordered[len(ordered) // 2])
+
 
 class Distance_Sensor:
     def __init__(self, sda, scl):

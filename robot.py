@@ -27,8 +27,10 @@ class Robot:
         self.ninety_degree_turn_range = [500, 700]  # time in ms for robot to turn 90 degrees
 
         self.has_box = False
-        self.at_junction = False
+        self.side = None
 
+    def update_side(self, side):
+        self.side = side
     
     def Drive(self, direction, speed):
         self.left_motor.on(dir=direction, speed=speed)
