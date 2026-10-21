@@ -28,6 +28,8 @@ far_right_light_sensor = sensors.Light_Sensor("GP13")
 
 magnetometer = sensors.Magnetometer(28)
 
+current_route = None
+
 robot = Robot(
     left_motor=left_motor,
     right_motor=right_motor,
@@ -37,7 +39,7 @@ robot = Robot(
     right_light_sensor=right_light_sensor,
     far_left_light_sensor=far_left_light_sensor,
     far_right_light_sensor=far_right_light_sensor,
-    magnetometer=magnetometer
+    magnetometer=magnetometer, current_route=current_route
     )
 
 running = False
