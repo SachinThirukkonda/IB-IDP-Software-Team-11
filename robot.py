@@ -7,7 +7,7 @@ from Navigation import Navigator
 class Robot:
     def __init__(self, left_motor, right_motor, forklift_servo, claw_servo, 
                  left_light_sensor, right_light_sensor, far_left_light_sensor, far_right_light_sensor,
-                 magnetometer = None, current_nav = None):
+                 magnetometer = None):
         self.left_motor = left_motor
         self.right_motor = right_motor
 
@@ -29,7 +29,6 @@ class Robot:
         self.has_box = False
         self.at_junction = False
 
-        self.current_nav = current_nav
     
     def Drive(self, direction, speed):
         self.left_motor.on(dir=direction, speed=speed)
@@ -152,9 +151,6 @@ class Robot:
         self.reverse_turn(-1)
         self.turn(1)
         
-
-    
-    def step(self):
 
     
     def update(self):

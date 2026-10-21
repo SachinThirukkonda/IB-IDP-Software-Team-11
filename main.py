@@ -5,10 +5,17 @@ from utime import sleep_ms
 import actuators
 import sensors
 from robot import Robot
+from Navigation import Navigator
+import Navigation as m
 
 
 def run(robot):
     """Main pipeline for the robot."""
+    counter=0
+    if counter==0:
+        navigator.find_route(m.strt, m.lwr2)
+        print(navigator.route)
+    
     return robot.test_magnetometer()
 
 
@@ -22,13 +29,10 @@ claw_servo = actuators.Servo(Pin("GP15"), 0)
 
 left_light_sensor = sensors.Light_Sensor("GP11")
 right_light_sensor = sensors.Light_Sensor("GP12")
-
 far_left_light_sensor = sensors.Light_Sensor("GP10")
 far_right_light_sensor = sensors.Light_Sensor("GP13")
 
 magnetometer = sensors.Magnetometer(28)
-
-current_route = None
 
 robot = Robot(
     left_motor=left_motor,
@@ -39,10 +43,11 @@ robot = Robot(
     right_light_sensor=right_light_sensor,
     far_left_light_sensor=far_left_light_sensor,
     far_right_light_sensor=far_right_light_sensor,
-    magnetometer=magnetometer, current_route=current_route
-    )
+    magnetometer=magnetometer)
+navigator = Navigator(orientation=0, robot=robot)
 
 running = True
+
 try:
     while running:
         try:

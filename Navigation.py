@@ -14,20 +14,15 @@ class Crossroads:
         self.neighbours = new_neighbours
 
 class Navigator:
-    def __init__(self, start, orientation, robot, destination=None, moving = False):
+    def __init__(self, robot):
         # 0-north, 1-east, 2-south, 3-west
-        self.start = start
-        self.destination = destination
-        self.orientation = orientation
-        self.robot = robot
-        self.moving = moving
+        self.route = []
+        self.orientation = 0
+        self.robot = robot 
 
-        def Update_neighbours(self, new_neighbours):
-            self.neighbours = new_neighbours
-
-    def Orient(self):
+    def Orient(self, node, nxt):
         #find difference between own orientation and location of destination
-        dest_orientation = self.start.neighbours.index(self.destination)
+        dest_orientation = node.neighbours.index(nxt)
         #we now find the difference between the two; 
         # if we get 1 or -3, we know we need to turn right
         # if we get -1 or 3, we know we need to turn left
@@ -36,34 +31,68 @@ class Navigator:
         if delta_orientation == 0:
             return
         if delta_orientation == 1:
-            #turn left
-            self.robot.Turn(-1)
+            #turn right
+            self.robot.Turn(1)
         if delta_orientation == 2:
             #do a 180
             self.robot.one_eighty_degree_turn()
         if delta_orientation == 3:
-            #turn right
-            self.robot.Turn(1)
+            #turn left
+            self.robot.Turn(-1)
     
-    def NavStep(self):
-        self.Orient()
+    def NavStep(self, node, nxt):
+        self.Orient(node, nxt)
         self.robot.Forward_Until_Node(80)
 
-    def FollowRoute(self, route):
-        routeCopy = route
+    def FollowRoute(self):
+        routeCopy = deque(self.route)
         #set start to first node in route and destination to second
-        self.start = routeCopy.pop()
-        self.destination = routeCopy.pop()
+        node = routeCopy.popleft()
+        nxt = routeCopy.popleft()
         #now loop through until route is empty:
-        while len(routeCopy >= 0):
+        while len(routeCopy) > 0:
             #go to next node
-            self.NavStep()
+            self.NavStep(node, nxt)
+
+            if (node, nxt) == (lwj9, crsw):
+                self.robot.update_side("w")
+            if (node, nxt) == (crsw, lwj9):
+                self.robot.update_side(None)
+            if (node, nxt) == (crse, lej9):
+                self.robot.update_side(None)
+            if (node, nxt) == (lej9, crse):
+                self.robot.update_side("e")
+
             #current node is now old destination
-            self.start = self.destination
+            node = nxt
             #new destination is start of remaining route
-            self.destination = routeCopy.pop()
+            nxt = routeCopy.popleft()
         #at the end of this loop, route will be empty but we won't have gone to the last node. so
-        self.NavStep() #do the final step
+        self.NavStep(node, nxt) #do the final step
+
+    def find_route(self, strt, end):
+        queue = deque([strt]) # Allows popleft
+        came_from = {strt: None}  #Dictionary where the value of each key is the node which comes before the key node in the path
+
+        while queue:
+            node = queue.popleft()
+            if node == end: #If we found the endpoint
+                break
+            for nxt in node.neighbours:  #Loop through neighbours to current node
+                if nxt is not None and nxt not in came_from:  #If we haven't already looked at this neighbour node 
+                    came_from[nxt] = node       #Add (nxt;node) pair to dictionary
+                    queue.append(nxt)       #Add node to the queue of nodes to explore it's neighbours
+        
+        route = []
+        node = end      
+        while node is not None:
+            route.append(node)
+            node = came_from[node]      # Travel back from end using dictionary
+        route.reverse()
+        self.route = route
+
+
+
 
 
 #map
@@ -249,27 +278,3 @@ lcwj.Update_neighbours([None, lccj, lwj9, None])
 # we want the robot to have a start node and a destination node and to know what to do to get bw them
 #this requires knowledge of robot orientation and the geometry of the paths coming out of the node
 
-def find_route(strt, end):
-
-    queue = deque([strt])
-    came_from = {strt: None}
-
-    while queue:
-        node = queue.popleft()
-        if node == end: 
-            break
-        
-        for nxt in node.neighbours():
-            if nxt is not None and nxt not in came_from:
-                came_from[nxt] = node
-                queue.append(nxt)
-
-    route = []
-    node = end
-
-    while node is not None:
-        route.append(node)
-        node = came_from[node]
-    
-    route.reverse
-    return route
