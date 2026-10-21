@@ -91,13 +91,7 @@ class Navigator:
         route.reverse()
         self.route = route
 
-
-    def get_start_end(self):
         
-
-
-
-
 
 
 #map
