@@ -7,7 +7,7 @@ from Navigation import Navigator
 class Robot:
     def __init__(self, left_motor, right_motor, forklift_servo, claw_servo, 
                  left_light_sensor, right_light_sensor, far_left_light_sensor, far_right_light_sensor,
-                 magnetometer = None):
+                 magnetometer):
         self.left_motor = left_motor
         self.right_motor = right_motor
 
@@ -53,6 +53,35 @@ class Robot:
             self.left_motor.speed -= 25
         self.left_motor.update()
         self.right_motor.update()
+
+
+    def collect_box(self):
+        while self.magnetometer.value() == 0:
+            self.Drive(1, 30)
+            self.Line_following()
+            sleep_ms(20)
+            polarity = self.magnetometer.value()
+        self.reset()
+        self.forklift_servo.set_angle(0)
+        self.claw_servo.set_angle(0)
+        sleep_ms(1000)
+        self.forklift_servo.set_angle(135)
+        sleep_ms(1000)
+        self.claw_servo.set_angle(135)
+        sleep_ms(1000)
+        self.has_box = True
+        return polarity
+
+    def drop_box(self):
+        self.forklift_servo.set_angle(0)
+        sleep_ms(1000)
+        self.claw_servo.set_angle(270)
+        sleep_ms(1000)
+        self.forklift_servo.set_angle(135)
+        sleep_ms(1000)
+        self.claw_servo.set_angle(135)
+        sleep_ms(1000)
+        self.has_box = False
     
     def check_path(self):
         # Execute 90 degree turn if white detected on far sensors

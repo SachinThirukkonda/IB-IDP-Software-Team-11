@@ -92,6 +92,11 @@ class Navigator:
         self.route = route
 
 
+    def get_start_end(self):
+        
+
+
+
 
 
 
