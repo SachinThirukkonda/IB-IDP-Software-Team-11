@@ -4,6 +4,7 @@ from utime import sleep_ms
 
 import actuators
 import sensors
+import leds
 from robot import Robot
 from Navigation import Navigator
 import Navigation as m
@@ -12,15 +13,10 @@ import Navigation as m
 def run(robot):
     """Main pipeline for the robot."""
     
-    counter=0
-    if counter==0:
-        navigator.find_route(m.strt, m.lwr2)
-        print(navigator.route)
-    
-    return robot.test_magnetometer()
-
+    return robot.test_servos()
 
 button = Pin("GP21", Pin.IN, Pin.PULL_DOWN)
+running = False
 
 left_motor = actuators.Motor(7, 6)
 right_motor = actuators.Motor(4, 5)
@@ -33,9 +29,21 @@ right_light_sensor = sensors.Light_Sensor("GP12")
 far_left_light_sensor = sensors.Light_Sensor("GP10")
 far_right_light_sensor = sensors.Light_Sensor("GP13")
 
+led_yellow = leds.led("GP14")
+
 magnetometer = sensors.Magnetometer(28)
 
+robot_kwargs = {
+    "one_eighty_degree_turn_range": [1000, 1500],  # time in ms for robot to turn 180 degrees
+    "ninety_degree_turn_range": [500, 700],  # time in ms for robot to turn 90 degrees
+    "motor_correction": 25,  # Amount to adjust motor speed for line following
+    "turning_sleep_time": 500,  # Sleep time during turning actions
+    "reverse_turning_sleep_time": 550,  # Sleep time during reverse turning actions
+    "control_frequency": 50  # Control frequency in Hz
+}
+
 robot = Robot(
+    parameters=robot_kwargs,
     left_motor=left_motor,
     right_motor=right_motor,
     forklift_servo=forklift_servo,
@@ -45,10 +53,10 @@ robot = Robot(
     far_left_light_sensor=far_left_light_sensor,
     far_right_light_sensor=far_right_light_sensor,
     magnetometer=magnetometer)
-navigator = Navigator(robot=robot)
+navigator = Navigator(robot=robot, strt = m.strt)
 
 
-running = False
+
 
 while True:
     if button.value() == 1 and running == False:
