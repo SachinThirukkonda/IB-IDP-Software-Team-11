@@ -22,6 +22,7 @@ class Robot:
         self.far_left_light_sensor = far_left_light_sensor
         self.far_right_light_sensor = far_right_light_sensor
 
+        self.at_junction = False
 
         self.one_eighty_degree_turn_range = [1000, 1500]  # time in ms for robot to turn 180 degrees
         self.ninety_degree_turn_range = [500, 700]  # time in ms for robot to turn 90 degrees
