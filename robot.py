@@ -25,9 +25,12 @@ class Robot:
         self.far_left_light_sensor = far_left_light_sensor
         self.far_right_light_sensor = far_right_light_sensor
 
+        self.at_junction = False
+
+   
+        self.has_box = False
         self.side = None
 
-        self.current_node = None
 
     '''
     Helper Methods

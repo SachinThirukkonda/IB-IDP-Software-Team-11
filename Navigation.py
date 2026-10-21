@@ -14,11 +14,12 @@ class Crossroads:
         self.neighbours = new_neighbours
 
 class Navigator:
-    def __init__(self, robot):
+    def __init__(self, robot, strt):
         # 0-north, 1-east, 2-south, 3-west
         self.route = []
         self.orientation = 0
-        self.robot = robot 
+        self.robot = robot
+        self.current = strt 
 
     def Orient(self, node, nxt):
         #find difference between own orientation and location of destination
@@ -70,7 +71,9 @@ class Navigator:
         #at the end of this loop, route will be empty but we won't have gone to the last node. so
         self.NavStep(node, nxt) #do the final step
 
-    def find_route(self, strt, end):
+        self.current = nxt
+
+    def find_path(self, strt, end):
         queue = deque([strt]) # Allows popleft
         came_from = {strt: None}  #Dictionary where the value of each key is the node which comes before the key node in the path
 
@@ -92,8 +95,40 @@ class Navigator:
         self.route = route
 
 
-    def get_start_end(self):
-        pass
+        
+    def get_route(self, polarity):  # Not pretty, potentially rethink
+        
+        if self.robot.has_box == True:
+            if polarity == 1:
+                if self.robot.side == "w":
+                    if not self.current.rack:
+                        self.find_path(self.current, uwr6)
+                    else:
+                        pass # Go to next rack
+
+                if self.robot.side == "e":
+                    if not self.current.rack:
+                        self.find_path(self.current, uer6)
+                    else:
+                        pass
+
+            elif polarity == -1:
+                if self.robot.side == "w":
+                    if not self.current.rack:
+                        self.find_path(self.current, lwr6)
+                    else:
+                        pass # Go to next rack
+                
+                if self.robot.side == "e":
+                    if not self.current.rack:
+                        self.find_path(self.current, ler6)
+                    else:
+                        pass
+
+        if not self.robot.has_box:
+            self.find_path(self.current, leb2)
+                        
+
 
 
 

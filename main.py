@@ -53,7 +53,7 @@ robot = Robot(
     far_left_light_sensor=far_left_light_sensor,
     far_right_light_sensor=far_right_light_sensor,
     magnetometer=magnetometer)
-navigator = Navigator(robot=robot)
+navigator = Navigator(robot=robot, strt = m.strt)
 
 
 
