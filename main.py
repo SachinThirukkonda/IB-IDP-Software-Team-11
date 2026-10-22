@@ -29,7 +29,9 @@ right_light_sensor = sensors.Light_Sensor("GP12")
 far_left_light_sensor = sensors.Light_Sensor("GP10")
 far_right_light_sensor = sensors.Light_Sensor("GP13")
 
-led_yellow = leds.led("GP14")
+led_red = leds.LED("GP4")
+led_green = leds.LED("GP2")
+led_yellow = leds.LED("GP3")
 
 magnetometer = sensors.Magnetometer(28)
 
@@ -52,7 +54,11 @@ robot = Robot(
     right_light_sensor=right_light_sensor,
     far_left_light_sensor=far_left_light_sensor,
     far_right_light_sensor=far_right_light_sensor,
-    magnetometer=magnetometer)
+    magnetometer=magnetometer,
+    led_red=led_red,
+    led_green=led_green,
+    led_yellow=led_yellow)
+
 navigator = Navigator(robot=robot, strt = m.strt)
 
 
@@ -61,11 +67,13 @@ navigator = Navigator(robot=robot, strt = m.strt)
 while True:
     if button.value() == 1 and running == False:
         print("Button pressed. Starting robot.")
+        robot.led_yellow.start_flash()
         sleep_ms(1000)  # Debounce delay
         running = True
         
     if button.value() == 1 and running == True:
         print("Button pressed. Stopping robot.")
+        robot.led_yellow.stop_flash()
         sleep_ms(1000)  # Debounce delay
         running = False
         

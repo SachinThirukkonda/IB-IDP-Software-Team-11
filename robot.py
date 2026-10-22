@@ -6,7 +6,8 @@ from Navigation import Navigator
 
 class Robot:
     def __init__(self, parameters, left_motor, right_motor, forklift_servo, claw_servo, 
-                 left_light_sensor, right_light_sensor, far_left_light_sensor, far_right_light_sensor, magnetometer):
+                 left_light_sensor, right_light_sensor, far_left_light_sensor, far_right_light_sensor, magnetometer,
+                 led_red, led_green, led_yellow):
 
         #Initialise hyperparameters
         self._init_parameters(parameters)
@@ -25,9 +26,11 @@ class Robot:
         self.far_left_light_sensor = far_left_light_sensor
         self.far_right_light_sensor = far_right_light_sensor
 
+        self.led_red = led_red
+        self.led_green = led_green
+        self.led_yellow = led_yellow
+        
         self.at_junction = False
-
-   
         self.has_box = False
         self.side = None
 
