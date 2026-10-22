@@ -56,16 +56,17 @@ class Distance_Sensor:
         self.distance_sensor = VL53L0X(i2c_bus)
         self.distance_sensor.set_Vcsel_pulse_period(self.distance_sensor.vcsel_period_type[0], 18)
         self.distance_sensor.set_Vcsel_pulse_period(self.distance_sensor.vcsel_period_type[1], 14)
-        
-        # Start device
-        self.distance_sensor.start()
     
     def value(self):
         return self.distance_sensor.read()
     
     def test(self):
         print(f"Distance: {self.distance_sensor.read()} mm")
-        
+
+    def on(self):
+        # Start device
+        self.distance_sensor.start()
+
     def off(self):
         # Stop device
         self.distance_sensor.stop()
