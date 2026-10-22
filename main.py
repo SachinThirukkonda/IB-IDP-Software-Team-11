@@ -13,10 +13,10 @@ import Navigation as m
 def run(robot):
     """Main pipeline for the robot."""
     
-    return robot.test_servos()
+    return robot.up_down()
 
 button = Pin("GP21", Pin.IN, Pin.PULL_DOWN)
-running = False
+running = True
 
 left_motor = actuators.Motor(7, 6)
 right_motor = actuators.Motor(4, 5)
@@ -34,6 +34,10 @@ led_green = leds.LED("GP2")
 led_yellow = leds.LED("GP3")
 
 magnetometer = sensors.Magnetometer(28)
+#collection_distance_sensor = sensors.Distance_Sensor(22, 21)
+#dropoff_distance_sensor = sensors.Distance_Sensor(19, 20)
+collection_distance_sensor = None
+dropoff_distance_sensor = None
 
 robot_kwargs = {
     "one_eighty_degree_turn_range": [1000, 1500],  # time in ms for robot to turn 180 degrees
@@ -41,7 +45,13 @@ robot_kwargs = {
     "motor_correction": 25,  # Amount to adjust motor speed for line following
     "turning_sleep_time": 500,  # Sleep time during turning actions
     "reverse_turning_sleep_time": 550,  # Sleep time during reverse turning actions
-    "control_frequency": 50  # Control frequency in Hz
+    "control_frequency": 50,  # Control frequency in Hz
+    "claw_close_angle": 0,
+    "forklift_default_angle": 0,
+    "claw_open_angle": 45,  # 
+    "forklift_lower_angle": 120,
+    "forklift_raise_angle": 45,
+    "collection_time": 1000
 }
 
 robot = Robot(
@@ -57,13 +67,22 @@ robot = Robot(
     magnetometer=magnetometer,
     led_red=led_red,
     led_green=led_green,
-    led_yellow=led_yellow)
-
+    led_yellow=led_yellow,
+    collection_distance_sensor=collection_distance_sensor,
+    dropoff_distance_sensor=dropoff_distance_sensor
+    )
 navigator = Navigator(robot=robot, strt = m.strt)
 
 
 
-
+while running:
+            try:
+                running = run(robot)
+            except Exception as e:
+                print("Robot error:", e)
+                running = False
+                robot.reset()
+            sleep_ms(10)
 while True:
     if button.value() == 1 and running == False:
         print("Button pressed. Starting robot.")

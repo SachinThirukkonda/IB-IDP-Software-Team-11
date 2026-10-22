@@ -58,7 +58,8 @@ class Servo:
  
        duty = int(Servo.MIN_DUTY + (angle / 270) * (Servo.MAX_DUTY - Servo.MIN_DUTY))
        self.servo.duty_u16(duty)
-    
+
+
     def reset(self):
         self.set_angle(self.reset_angle)
         
