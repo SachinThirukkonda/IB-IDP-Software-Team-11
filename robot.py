@@ -6,7 +6,8 @@ from Navigation import Navigator
 
 class Robot:
     def __init__(self, parameters, left_motor, right_motor, forklift_servo, claw_servo, 
-                 left_light_sensor, right_light_sensor, far_left_light_sensor, far_right_light_sensor, magnetometer):
+                 left_light_sensor, right_light_sensor, far_left_light_sensor, 
+                 far_right_light_sensor, magnetometer, collection_distance_sensor, dropoff_distance_sensor):
 
         #Initialise hyperparameters
         self._init_parameters(parameters)
@@ -18,6 +19,8 @@ class Robot:
         self.claw_servo = claw_servo
 
         self.magnetometer = magnetometer
+        self.collection_distance_sensor = collection_distance_sensor
+        self.dropoff_distance_sensor = dropoff_distance_sensor
 
         self.left_light_sensor = left_light_sensor
         self.right_light_sensor = right_light_sensor
@@ -81,13 +84,31 @@ class Robot:
         line_detection(self.ninety_degree_turn_range, self.left_light_sensor, self.right_light_sensor)
 
     def move_to_box(self, speed):
-        while self.magnetometer.value() == 0:
+        '''
+        # When magnetometer is implemented
+        t0 = ticks_ms()
+        while self.magnetometer.value() == 0 and ticks_ms() < (t0 + self.collection_time):
             self.magnetometer.update()
             self.drive(1, speed)
-            self.line_following()
             sleep_ms(self.control_period)
             polarity = self.magnetometer.value()
+        if polarity == 0:
+            # Aborted
+            self.drive(0, speed)
+            sleep_ms(self.control_period)
         return polarity
+        '''
+        t0 = ticks_ms()
+        self.collection_distance_sensor.on()
+        while self.collection_distance_sensor.value() < 10 and ticks_ms() < (t0 + self.collection_time):
+            self.drive(1, speed)
+            sleep_ms(self.control_period)
+        if ticks_ms() >= (t0 + self.collection_time):
+            # Aborted
+            self.drive(0, speed)
+            sleep_ms(self.collection_time)
+        return 1
+
             
     def update_side(self, side):
         self.side = side
@@ -157,7 +178,7 @@ class Robot:
         box_polarity = self.move_to_box(30) 
 
         #Close claws on box and lift it up       
-        self.claw_servo.set_angle()
+        self.claw_servo.set_angle(self.claw_close_angle)
         sleep_ms(500)
         self.forklift_servo.set_angle()
         
@@ -199,9 +220,12 @@ class Robot:
         self.reverse_turning_sleep_time = 550  # Sleep time during reverse turning actions
         self.control_frequency = 50  # Control frequency in Hz
         self.control_period = 1000 // self.control_frequency  # Control period in ms
+        self.claw_close_angle = 0
+        self.forklift_default_angle = 0
         self.claw_open_angle = 20
-        self.forklift_lower_angle = -120
-        self.forklift_raise_angle = 45
+        self.forklift_lower_angle = 120
+        self.forklift_raise_angle = 180
+        self.collection_time = 1000
 
         # Change any default values to custom values for specified hyperparameters
         for param, val in parameters.items():
@@ -245,6 +269,7 @@ class Robot:
         sleep_ms(1000)
         self.claw_servo.reset()
         sleep_ms(1000)
+        return True
     
     def test_light_sensors(self):
         left_line = self.left_light_sensor.value()

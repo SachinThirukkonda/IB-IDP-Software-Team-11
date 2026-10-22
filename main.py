@@ -20,8 +20,8 @@ running = True
 left_motor = actuators.Motor(7, 6)
 right_motor = actuators.Motor(4, 5)
 
-forklift_servo = actuators.Servo(Pin("GP15"), 0, 20)
-claw_servo = actuators.Servo(Pin("GP15"), 0, 20)
+forklift_servo = actuators.Servo(Pin("GP15"), 0)
+claw_servo = actuators.Servo(Pin("GP15"), 0)
 
 left_light_sensor = sensors.Light_Sensor("GP11")
 right_light_sensor = sensors.Light_Sensor("GP12")
@@ -29,6 +29,8 @@ far_left_light_sensor = sensors.Light_Sensor("GP10")
 far_right_light_sensor = sensors.Light_Sensor("GP13")
 
 magnetometer = sensors.Magnetometer(28)
+collection_distance_sensor = sensors.Distance_Sensor(22, 21)
+dropoff_distance_sensor = sensors.Distance_Sensor(19, 20)
 
 robot_kwargs = {
     "one_eighty_degree_turn_range": [1000, 1500],  # time in ms for robot to turn 180 degrees
@@ -37,9 +39,12 @@ robot_kwargs = {
     "turning_sleep_time": 500,  # Sleep time during turning actions
     "reverse_turning_sleep_time": 550,  # Sleep time during reverse turning actions
     "control_frequency": 50,  # Control frequency in Hz
+    "claw_close_angle": 0,
+    "forklift_default_angle": 0,
     "claw_open_angle": 180,  # 
-    "forklift_lower_angle": -120,
-    "forklift_raise_angle": 45
+    "forklift_lower_angle": 120,
+    "forklift_raise_angle": 45,
+    "collection_time": 1000
 }
 
 robot = Robot(
@@ -52,7 +57,10 @@ robot = Robot(
     right_light_sensor=right_light_sensor,
     far_left_light_sensor=far_left_light_sensor,
     far_right_light_sensor=far_right_light_sensor,
-    magnetometer=magnetometer)
+    magnetometer=magnetometer,
+    collection_distance_sensor=collection_distance_sensor,
+    dropoff_distance_sensor=dropoff_distance_sensor
+    )
 navigator = Navigator(robot=robot, strt = m.strt)
 
 
