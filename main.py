@@ -4,6 +4,7 @@ from utime import sleep_ms
 
 import actuators
 import sensors
+import leds
 from robot import Robot
 from Navigation import Navigator
 import Navigation as m
@@ -27,6 +28,10 @@ left_light_sensor = sensors.Light_Sensor("GP11")
 right_light_sensor = sensors.Light_Sensor("GP12")
 far_left_light_sensor = sensors.Light_Sensor("GP10")
 far_right_light_sensor = sensors.Light_Sensor("GP13")
+
+led_red = leds.LED("GP4")
+led_green = leds.LED("GP2")
+led_yellow = leds.LED("GP3")
 
 magnetometer = sensors.Magnetometer(28)
 #collection_distance_sensor = sensors.Distance_Sensor(22, 21)
@@ -60,6 +65,9 @@ robot = Robot(
     far_left_light_sensor=far_left_light_sensor,
     far_right_light_sensor=far_right_light_sensor,
     magnetometer=magnetometer,
+    led_red=led_red,
+    led_green=led_green,
+    led_yellow=led_yellow,
     collection_distance_sensor=collection_distance_sensor,
     dropoff_distance_sensor=dropoff_distance_sensor
     )
@@ -78,13 +86,15 @@ while running:
 while True:
     if button.value() == 1 and running == False:
         print("Button pressed. Starting robot.")
+        robot.led_yellow.start_flash()
         sleep_ms(1000)  # Debounce delay
         running = True
         
     if button.value() == 1 and running == True:
         print("Button pressed. Stopping robot.")
+        robot.led_yellow.stop_flash()
         sleep_ms(1000)  # Debounce delay
-        running = False    
+        running = False
         
 
     try:
