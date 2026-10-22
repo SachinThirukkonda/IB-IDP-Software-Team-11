@@ -12,7 +12,7 @@ import Navigation as m
 def run(robot):
     """Main pipeline for the robot."""
     
-    return robot.open_close()
+    return robot.up_down()
 
 button = Pin("GP21", Pin.IN, Pin.PULL_DOWN)
 running = True
@@ -29,8 +29,10 @@ far_left_light_sensor = sensors.Light_Sensor("GP10")
 far_right_light_sensor = sensors.Light_Sensor("GP13")
 
 magnetometer = sensors.Magnetometer(28)
-collection_distance_sensor = sensors.Distance_Sensor(22, 21)
-dropoff_distance_sensor = sensors.Distance_Sensor(19, 20)
+#collection_distance_sensor = sensors.Distance_Sensor(22, 21)
+#dropoff_distance_sensor = sensors.Distance_Sensor(19, 20)
+collection_distance_sensor = None
+dropoff_distance_sensor = None
 
 robot_kwargs = {
     "one_eighty_degree_turn_range": [1000, 1500],  # time in ms for robot to turn 180 degrees
@@ -41,7 +43,7 @@ robot_kwargs = {
     "control_frequency": 50,  # Control frequency in Hz
     "claw_close_angle": 0,
     "forklift_default_angle": 0,
-    "claw_open_angle": 180,  # 
+    "claw_open_angle": 45,  # 
     "forklift_lower_angle": 120,
     "forklift_raise_angle": 45,
     "collection_time": 1000

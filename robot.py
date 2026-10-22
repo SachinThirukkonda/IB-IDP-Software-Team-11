@@ -33,6 +33,7 @@ class Robot:
    
         self.has_box = False
         self.side = None
+        self.box_polarity = 0
 
 
     '''
@@ -96,6 +97,7 @@ class Robot:
             # Aborted
             self.drive(0, speed)
             sleep_ms(self.control_period)
+        self.box_polarity = polarity
         return polarity
         '''
         t0 = ticks_ms()
@@ -267,10 +269,21 @@ class Robot:
     def open_close(self):
         self.claw_servo.set_angle(self.claw_open_angle)
         sleep_ms(1000)
-        self.claw_servo.reset()
+        self.claw_servo.set_angle(self.claw_close_angle)
         sleep_ms(1000)
         return True
-    
+
+    def up_down(self):
+        self.claw_servo.set_angle(self.forklift_default_angle)
+        sleep_ms(3000)
+        self.claw_servo.set_angle(self.forklift_lower_angle)
+        sleep_ms(1000)
+        self.claw_servo.set_angle(self.forklift_default_angle)
+        sleep_ms(1000)
+        self.claw_servo.set_angle(self.forklift_raise_angle)
+        sleep_ms(3000)
+        
+        return True
     def test_light_sensors(self):
         left_line = self.left_light_sensor.value()
         right_line = self.right_light_sensor.value()
