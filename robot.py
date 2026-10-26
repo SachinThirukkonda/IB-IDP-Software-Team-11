@@ -34,7 +34,6 @@ class Robot:
         
         self.at_junction = False
         self.has_box = False
-        self.side = None
         self.box_polarity = 0
 
 
@@ -112,10 +111,6 @@ class Robot:
             self.drive(0, speed)
             sleep_ms(self.collection_time)
         return 1
-
-            
-    def update_side(self, side):
-        self.side = side
 
     def reset(self):
         self.left_motor.off()

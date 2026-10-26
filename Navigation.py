@@ -2,13 +2,14 @@ from box import box
 from collections import deque
 
 class Crossroads:
-    def __init__(self, name, neighbours, occupied = False, rack = False):
+    def __init__(self, name, neighbours, side=None, occupied = False, rack = False):
         #neighbours are [north node, east node, south node, west node]
         self.neighbours = neighbours
         self.occupied = occupied #does this have a box?
         self.rack = rack #does this have somewhere to put a box?
         self.name = name
         self.label = name.split()
+        self.side = side
 
     def Update_neighbours(self, new_neighbours):
         self.neighbours = new_neighbours
@@ -48,8 +49,13 @@ class Navigator:
     def FollowRoute(self):
         routeCopy = deque(self.route)
         #set start to first node in route and destination to second
-        node = routeCopy.popleft()
-        nxt = routeCopy.popleft()
+        if len(routeCopy) >= 2:
+            node = routeCopy.popleft()
+            nxt = routeCopy.popleft()
+        else:
+            print("No route to follow")
+            return
+        
         #now loop through until route is empty:
         while len(routeCopy) > 0:
             #go to next node
@@ -83,7 +89,7 @@ class Navigator:
                 break
             for nxt in node.neighbours:  #Loop through neighbours to current node
                 if nxt is not None and nxt not in came_from:  #If we haven't already looked at this neighbour node 
-                    came_from[nxt] = node       #Add (nxt;node) pair to dictionary
+                    came_from[nxt] = node       #Add (nxt;node) pair to dictionary ie the new node and where it came from
                     queue.append(nxt)       #Add node to the queue of nodes to explore it's neighbours
         
         route = []
@@ -94,36 +100,48 @@ class Navigator:
         route.reverse()
         self.route = route
 
+    def next_rack(self, side, polarity):
+        # Do a 180 to get oriented
+        self.robot.Forward_Until_Node(80)
+        # Turn right if upper right or lower left, left if upper left or lower right
+        self.robot.Turn(polarity*side)
+        self.robot.Forward_Until_Node(30)
+        self.robot.Turn(polarity*side)
+        self.robot.Forward_Until_Node(80)
+        self.route = []
+
 
         
     def get_route(self, polarity):  # Not pretty, potentially rethink
-        
+        # side: 1 right/east, -1 left/west
+        # polarity: 1 upper, -1 lower
         if self.robot.has_box == True:
             if polarity == 1:
-                if self.robot.side == "w":
+                if self.current.side == -1:
                     if not self.current.rack:
                         self.find_path(self.current, uwr6)
                     else:
-                        pass # Go to next rack
+                        # Rack has box already, go to next
+                        self.next_rack(self.current.side, polarity)
 
-                if self.robot.side == "e":
+                if self.current.side == 1:
                     if not self.current.rack:
                         self.find_path(self.current, uer6)
                     else:
-                        pass
+                        self.next_rack(self.current.side, polarity)
 
             elif polarity == -1:
-                if self.robot.side == "w":
+                if self.current.side == -1:
                     if not self.current.rack:
                         self.find_path(self.current, lwr6)
                     else:
-                        pass # Go to next rack
+                        self.next_rack(self.current.side, polarity)
                 
-                if self.robot.side == "e":
+                if self.current.side == 1:
                     if not self.current.rack:
                         self.find_path(self.current, ler6)
                     else:
-                        pass
+                        self.next_rack(self.current.side, polarity)
 
         if not self.robot.has_box:
             self.find_path(self.current, leb2)
@@ -193,45 +211,44 @@ lcej = Crossroads("lcej", [])  # Just northeast of start
 lcwj = Crossroads("lcwj", [])  # Just northwest of start
 
 # lower west racks
-lwr1 = Crossroads("lwr1", [None, None, None, lwj1], rack=True)
-lwr2 = Crossroads("lwr2", [None, None, None, lwj2], rack=True)
-lwr3 = Crossroads("lwr3", [None, None, None, lwj3], rack=True)
-lwr4 = Crossroads("lwr4", [None, None, None, lwj4], rack=True)
-lwr5 = Crossroads("lwr5", [None, None, None, lwj5], rack=True)
-lwr6 = Crossroads("lwr6", [None, None, None, lwj6], rack=True)
+lwr1 = Crossroads("lwr1", [None, None, None, lwj1], side=-1, rack=True)
+lwr2 = Crossroads("lwr2", [None, None, None, lwj2], side=-1, rack=True)
+lwr3 = Crossroads("lwr3", [None, None, None, lwj3], side=-1, rack=True)
+lwr4 = Crossroads("lwr4", [None, None, None, lwj4], side=-1, rack=True)
+lwr5 = Crossroads("lwr5", [None, None, None, lwj5], side=-1, rack=True)
+lwr6 = Crossroads("lwr6", [None, None, None, lwj6], side=-1, rack=True)
 
 # lower west boxes
-lwb1 = Crossroads("lwb1", [], occupied=True)
-lwb2 = Crossroads("lwb2", [], occupied=True)
+lwb1 = Crossroads("lwb1", [], side=-1, occupied=True)
+lwb2 = Crossroads("lwb2", [], side=-1, occupied=True)
 
 # lower east racks
-ler1 = Crossroads("ler1", [None, lej1, None, None], rack=True)
-ler2 = Crossroads("ler2", [None, lej2, None, None], rack=True)
-ler3 = Crossroads("ler3", [None, lej3, None, None], rack=True)
-ler4 = Crossroads("ler4", [None, lej4, None, None], rack=True)
-ler5 = Crossroads("ler5", [None, lej5, None, None], rack=True)
-ler6 = Crossroads("ler6", [None, lej6, None, None], rack=True)
+ler1 = Crossroads("ler1", [None, lej1, None, None], side=1, rack=True)
+ler2 = Crossroads("ler2", [None, lej2, None, None], side=1, rack=True)
+ler3 = Crossroads("ler3", [None, lej3, None, None], side=1, rack=True)
+ler4 = Crossroads("ler4", [None, lej4, None, None], side=1, rack=True)
+ler5 = Crossroads("ler5", [None, lej5, None, None], side=1, rack=True)
+ler6 = Crossroads("ler6", [None, lej6, None, None], side=1, rack=True)
 
 # lower east boxes
-leb1 = Crossroads("leb1", [], occupied=True)
-leb2 = Crossroads("leb2", [], occupied=True)
+leb1 = Crossroads("leb1", [], side=1, occupied=True)
+leb2 = Crossroads("leb2", [], side=1, occupied=True)
 
 # upper west racks
-uwr1 = Crossroads("uwr1", [], rack=True)
-uwr2 = Crossroads("uwr2", [], rack=True)
-uwr3 = Crossroads("uwr3", [], rack=True)
-uwr4 = Crossroads("uwr4", [], rack=True)
-uwr5 = Crossroads("uwr5", [], rack=True)
-uwr6 = Crossroads("uwr6", [], rack=True)
+uwr1 = Crossroads("uwr1", [], side=-1, rack=True)
+uwr2 = Crossroads("uwr2", [], side=-1, rack=True)
+uwr3 = Crossroads("uwr3", [], side=-1, rack=True)
+uwr4 = Crossroads("uwr4", [], side=-1, rack=True)
+uwr5 = Crossroads("uwr5", [], side=-1, rack=True)
+uwr6 = Crossroads("uwr6", [], side=-1, rack=True)
 
 # upper east racks
-uer1 = Crossroads("uer1", [], rack=True)
-uer2 = Crossroads("uer2", [], rack=True)
-uer3 = Crossroads("uer3", [], rack=True)
-uer4 = Crossroads("uer4", [], rack=True)
-uer5 = Crossroads("uer5", [], rack=True)
-uer6 = Crossroads("uer6", [], rack=True)
-
+uer1 = Crossroads("uer1", [], side=1, rack=True)
+uer2 = Crossroads("uer2", [], side=1, rack=True)
+uer3 = Crossroads("uer3", [], side=1, rack=True)
+uer4 = Crossroads("uer4", [], side=1, rack=True)
+uer5 = Crossroads("uer5", [], side=1, rack=True)
+uer6 = Crossroads("uer6", [], side=1, rack=True)
 
 #CONNECTING NODES
 #lower western racks
