@@ -17,7 +17,7 @@ class Navigator:
     def __init__(self, robot, strt):
         # 0-north, 1-east, 2-south, 3-west
         self.route = []
-        self.orientation = 0
+        self.orientation = 1
         self.robot = robot
         self.current = strt 
 
@@ -32,6 +32,7 @@ class Navigator:
         if delta_orientation == 0:
             return
         if delta_orientation == 1:
+            self.orientation += 1
             #turn right
             self.robot.Turn(1)
         if delta_orientation == 2:
@@ -40,6 +41,7 @@ class Navigator:
         if delta_orientation == 3:
             #turn left
             self.robot.Turn(-1)
+            self.orientation -= 1
     
     def NavStep(self, node, nxt):
         self.Orient(node, nxt)
