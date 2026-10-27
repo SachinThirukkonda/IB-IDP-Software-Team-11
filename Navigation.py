@@ -23,6 +23,16 @@ class Navigator:
         self.current = strt 
         self.polarity = 0
 
+    def Turn(self, direction, reverse=False):
+        """Turn the robot and keep the navigator's orientation in sync."""
+        if direction == 2:
+            self.robot.One_Eighty_Degree_Turn()
+        elif reverse:
+            self.robot.Reverse_Turn(direction)
+        else:
+            self.robot.Turn(direction)
+        self.orientation = (self.orientation + direction) % 4
+
     def Orient(self, node, nxt):
         #find difference between own orientation and location of destination
         dest_orientation = node.neighbours.index(nxt)
@@ -34,16 +44,14 @@ class Navigator:
         if delta_orientation == 0:
             return
         if delta_orientation == 1:
-            self.orientation += 1
             #turn right
-            self.robot.Turn(1)
+            self.Turn(1)
         if delta_orientation == 2:
             #do a 180
-            self.robot.one_eighty_degree_turn()
+            self.Turn(2)
         if delta_orientation == 3:
             #turn left
-            self.robot.Turn(-1)
-            self.orientation -= 1
+            self.Turn(-1)
     
     def NavStep(self, node, nxt):
         self.Orient(node, nxt)
@@ -54,8 +62,7 @@ class Navigator:
             self.Orient(node, nxt)
             self.polarity = self.robot.Collect_Box()
             # Return from the box spur using the turn opposite to its side.
-            self.robot.Reverse_Turn(-nxt.side*self.polarity)
-            self.orientation -= nxt.side*self.polarity
+            self.Turn(-nxt.side * self.polarity, reverse=True)
         elif nxt.rack:
             self.Orient(node, nxt)
 
@@ -65,8 +72,7 @@ class Navigator:
                 self.robot.Drop_Box()
 
                 # Return from the rack spur using the turn opposite to its side.
-                self.robot.Reverse_Turn(-nxt.side)
-                self.orientaton -= nxt.side
+                self.Turn(-nxt.side, reverse=True)
 
             else:
                 self.next_rack(nxt.side)  
@@ -98,13 +104,11 @@ class Navigator:
 
     def next_rack(self, side, n=1):
         # Do a reverse turn towards next rack
-        self.robot.Reverse_Turn(-self.polarity * side)
-        self.orientation += (-self.polarity * side)
+        self.Turn(-self.polarity * side, reverse=True)
             
         self.robot.Forward_Until_Node(80)
         # Turn into rack
-        self.robot.Turn(self.polarity * side)
-        self.orientation += self.polarity*side 
+        self.Turn(self.polarity * side)
        
         # Box drop sequence
         rack_occupied = self.robot.Forward_Until_Rack(80, time=2000)
@@ -113,8 +117,7 @@ class Navigator:
             self.robot.Drop_Box()
         
             # Return from the rack spur using the turn opposite to its side.
-            self.robot.Reverse_Turn(side*self.polarity)
-            self.orientaton = side*self.polarity
+            self.Turn(side * self.polarity, reverse=True)
 
             # Need to return to the "current" node, the junction next to first rack
             for x in range(n):
