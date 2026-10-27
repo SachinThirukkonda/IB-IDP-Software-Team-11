@@ -12,46 +12,54 @@ import Navigation as m
 
 def run(robot):
     """Main pipeline for the robot."""
+    return robot.update()
+
+    '''
+    navigator.find_path(m.strt, m.leb2)
+    navigator.FollowRoute()
+    navigator.find_path(m.leb2, m.ler6)
+    navigator.FollowRoute()
+    navigator.find_path(m.ler6, m.strt)
+    navigator.FollowRoute()
+    '''
     
-    return robot.up_down()
 
 button = Pin("GP21", Pin.IN, Pin.PULL_DOWN)
-running = True
+running = False
 
 left_motor = actuators.Motor(7, 6)
 right_motor = actuators.Motor(4, 5)
 
-forklift_servo = actuators.Servo(Pin("GP15"), 0)
+forklift_servo = actuators.Servo(Pin("GP13"), 0)
 claw_servo = actuators.Servo(Pin("GP15"), 0)
 
-left_light_sensor = sensors.Light_Sensor("GP11")
-right_light_sensor = sensors.Light_Sensor("GP12")
+left_light_sensor = sensors.Light_Sensor("GP12")
+right_light_sensor = sensors.Light_Sensor("GP8")
 far_left_light_sensor = sensors.Light_Sensor("GP10")
-far_right_light_sensor = sensors.Light_Sensor("GP13")
+far_right_light_sensor = sensors.Light_Sensor("GP11")
 
 led_red = leds.LED("GP4")
 led_green = leds.LED("GP2")
 led_yellow = leds.LED("GP3")
 
 magnetometer = sensors.Magnetometer(28)
-#collection_distance_sensor = sensors.Distance_Sensor(22, 21)
+collection_distance_sensor = sensors.Distance_Sensor(sda=16, scl=17)
 #dropoff_distance_sensor = sensors.Distance_Sensor(19, 20)
-collection_distance_sensor = None
 dropoff_distance_sensor = None
 
 robot_kwargs = {
     "one_eighty_degree_turn_range": [1000, 1500],  # time in ms for robot to turn 180 degrees
     "ninety_degree_turn_range": [500, 700],  # time in ms for robot to turn 90 degrees
     "motor_correction": 25,  # Amount to adjust motor speed for line following
-    "turning_sleep_time": 500,  # Sleep time during turning actions
-    "reverse_turning_sleep_time": 550,  # Sleep time during reverse turning actions
+    "turning_sleep_time": 250,  # Sleep time during turning actions
+    "reverse_turning_sleep_time": 250,  # Sleep time during reverse turning actions
     "control_frequency": 50,  # Control frequency in Hz
-    "claw_close_angle": 0,
-    "forklift_default_angle": 0,
+    "claw_close_angle": 10,
+    "forklift_default_angle": 108,
     "claw_open_angle": 45,  # 
-    "forklift_lower_angle": 120,
-    "forklift_raise_angle": 45,
-    "collection_time": 1000
+    "forklift_lower_angle": 0,
+    "forklift_raise_angle": 200,
+    "collection_time": 5000
 }
 
 robot = Robot(
@@ -74,7 +82,7 @@ robot = Robot(
 navigator = Navigator(robot=robot, strt = m.strt)
 
 
-
+'''
 while running:
             try:
                 running = run(robot)
@@ -83,6 +91,9 @@ while running:
                 running = False
                 robot.reset()
             sleep_ms(10)
+robot.reset()
+'''
+
 while True:
     if button.value() == 1 and running == False:
         print("Button pressed. Starting robot.")
