@@ -12,16 +12,13 @@ import Navigation as m
 
 def run(robot):
     """Main pipeline for the robot."""
-    return robot.update()
 
-    '''
     navigator.find_path(m.strt, m.leb2)
     navigator.FollowRoute()
-    navigator.find_path(m.leb2, m.ler6)
+    navigator.find_path(m.lej8, m.ler6)
     navigator.FollowRoute()
-    navigator.find_path(m.ler6, m.strt)
-    navigator.FollowRoute()
-    '''
+
+
     
 
 button = Pin("GP21", Pin.IN, Pin.PULL_DOWN)
