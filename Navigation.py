@@ -54,8 +54,8 @@ class Navigator:
             self.Orient(node, nxt)
             self.polarity = self.robot.Collect_Box()
             # Return from the box spur using the turn opposite to its side.
-            self.robot.Reverse_Turn(-nxt.side)
-            self.orientation -= nxt.side
+            self.robot.Reverse_Turn(-nxt.side*self.polarity)
+            self.orientation -= nxt.side*self.polarity
         elif nxt.rack:
             self.Orient(node, nxt)
 
@@ -70,7 +70,6 @@ class Navigator:
 
             else:
                 self.next_rack(nxt.side)  
-
 
         else:
             self.NavStep(node, nxt)
@@ -96,9 +95,8 @@ class Navigator:
         #at the end of this loop, route will be empty but we won't have gone to the last node. so
         self.FollowStep(node, nxt) #do the final step
 
-        self.current = nxt
 
-    def next_rack(self, side):
+    def next_rack(self, side, n=1):
         # Do a reverse turn towards next rack
         self.robot.Reverse_Turn(-self.polarity * side)
         self.orientation += (-self.polarity * side)
@@ -117,9 +115,13 @@ class Navigator:
             # Return from the rack spur using the turn opposite to its side.
             self.robot.Reverse_Turn(side*self.polarity)
             self.orientaton = side*self.polarity
-            
+
+            # Need to return to the "current" node, the junction next to first rack
+            for x in range(n):
+                self.robot.Forward_Until_node(100)
+
         else:
-            self.next_rack(side)
+            self.next_rack(side, n=n+1)
 
 
 
@@ -149,58 +151,10 @@ class Navigator:
             route.append(node)
             node = came_from[node]      # Travel back from end using dictionary
         route.reverse()
-        self.route = route    #Set royte
+        self.route = route    #Set route
         return destination
 
-    def next_rack(self, side):
-        # Do a reverse turn towards next rack
-        self.robot.Reverse_Turn(-self.polarity * side)
-        self.orientation += (-self.polarity * side)
-        
-        self.robot.Forward_Until_Node(80)
-        # Turn into rack
-        self.robot.Turn(self.polarity * side)
-        self.orientation += self.polarity*side
 
-        # Box drop sequence
-        rack_occupied = self.robot.Forward_Until_Rack(80, time=2000)
-        if not rack_occupied:
-            self.robot.forklift_servo.set_angle(self.robot.forklift_raise_angle)
-            self.robot.Drop_Box()
-        
-            # Return from the rack spur using the turn opposite to its side.
-            self.robot.Reverse_Turn(side*self.polarity)
-            self.orientaton = side*self.polarity
-        
-        else:
-            self.next_rack(side)  
-        
-       
-    def get_route(self, polarity):  # Not pretty, potentially rethink
-        # side: 1 right/east, -1 left/west
-        # polarity: 1 upper, -1 lower
-        if self.robot.has_box == True:
-            if polarity == 1:
-                if self.current.side == -1:
-                    if not self.current.rack:
-                        self.find_path(self.current, uwr6)
-                    
-                if self.current.side == 1:
-                    if not self.current.rack:
-                        self.find_path(self.current, uer6)
-                    
-            elif polarity == -1:
-                if self.current.side == -1:
-                    if not self.current.rack:
-                        self.find_path(self.current, lwr6)
-                    
-                
-                if self.current.side == 1:
-                    if not self.current.rack:
-                        self.find_path(self.current, ler6)
-                    
-        if not self.robot.has_box:
-            self.find_path(self.current, leb2)
 
     def get_route_for_box_state(self, has_box):
         """Route to a rack when carrying a box, otherwise to the nearest box."""
