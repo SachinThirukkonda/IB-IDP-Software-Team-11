@@ -6,9 +6,9 @@ from Navigation import Navigator
 
 class Robot:
     def __init__(self, parameters, left_motor, right_motor, forklift_servo, claw_servo, 
-                 left_light_sensor, right_light_sensor, far_left_light_sensor, 
-                 far_right_light_sensor, magnetometer, collection_distance_sensor, dropoff_distance_sensor):
-
+                 left_light_sensor, right_light_sensor, far_left_light_sensor, far_right_light_sensor, magnetometer,
+                 led_red, led_green, led_yellow, collection_distance_sensor, dropoff_distance_sensor):
+            
         #Initialise hyperparameters
         self._init_parameters(parameters)
         
@@ -30,12 +30,14 @@ class Robot:
         self.far_left_light_sensor = far_left_light_sensor
         self.far_right_light_sensor = far_right_light_sensor
 
+        self.led_red = led_red
+        self.led_green = led_green
+        self.led_yellow = led_yellow
+        
         self.at_junction = False
-
-   
         self.has_box = False
-        self.side = None
         self.box_polarity = 0
+        self.box_detected = False
 
 
     '''
@@ -125,10 +127,6 @@ class Robot:
             self.reset()
         return 1
 
-            
-    def update_side(self, side):
-        self.side = side
-
     def reset(self):
         self.left_motor.off()
         self.right_motor.off()
@@ -159,6 +157,28 @@ class Robot:
                 sleep_ms(self.control_period)
         
         self.drive(1, 0)
+
+
+
+    def Forward_Until_Rack(self, speed, time=2000):
+        """Follow the line toward a rack until it is detected or time expires."""
+        t0 = ticks_ms()
+        self.box_detected = False
+        self.drive(1, speed)
+
+        while time is None or ticks_ms() - t0 < time:
+            if (self.dropoff_distance_sensor is not None
+                    and self.dropoff_distance_sensor.value() <= 50):
+                self.box_detected = True
+                break
+
+            self.drive(1, speed)
+            self.line_following(1)
+            sleep_ms(self.control_period)
+
+        self.drive(1, 0)
+        return self.box_detected
+
 
     def Turn(self, LorR):
         # LorR (Left or Right) is -1 for left and 1 for right.

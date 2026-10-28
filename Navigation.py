@@ -2,13 +2,14 @@ from box import box
 from collections import deque
 
 class Crossroads:
-    def __init__(self, name, neighbours, occupied = False, rack = False):
+    def __init__(self, name, neighbours, side=None, occupied = False, rack = False):
         #neighbours are [north node, east node, south node, west node]
         self.neighbours = neighbours
         self.occupied = occupied #does this have a box?
         self.rack = rack #does this have somewhere to put a box?
         self.name = name
         self.label = name.split()
+        self.side = side
 
     def Update_neighbours(self, new_neighbours):
         self.neighbours = new_neighbours
@@ -20,6 +21,17 @@ class Navigator:
         self.orientation = 1
         self.robot = robot
         self.current = strt 
+        self.polarity = 0
+
+    def Turn(self, direction, reverse=False):
+        """Turn the robot and keep the navigator's orientation in sync."""
+        if direction == 2:
+            self.robot.One_Eighty_Degree_Turn()
+        elif reverse:
+            self.robot.Reverse_Turn(direction)
+        else:
+            self.robot.Turn(direction)
+        self.orientation = (self.orientation + direction) % 4
 
     def Orient(self, node, nxt):
         #find difference between own orientation and location of destination
@@ -32,103 +44,141 @@ class Navigator:
         if delta_orientation == 0:
             return
         if delta_orientation == 1:
-            self.orientation += 1
             #turn right
-            self.robot.Turn(1)
+            self.Turn(1)
         if delta_orientation == 2:
             #do a 180
-            self.robot.one_eighty_degree_turn()
+            self.Turn(2)
         if delta_orientation == 3:
             #turn left
-            self.robot.Turn(-1)
-            self.orientation -= 1
+            self.Turn(-1)
     
     def NavStep(self, node, nxt):
         self.Orient(node, nxt)
-        self.robot.Forward_Until_Node(80)
+        self.robot.Forward_Until_Node(100)
+
+    def FollowStep(self, node, nxt):
+        if nxt.occupied:
+            self.Orient(node, nxt)
+            self.polarity = self.robot.Collect_Box()
+            # Return from the box spur using the turn opposite to its side.
+            self.Turn(-nxt.side * self.polarity, reverse=True)
+        elif nxt.rack:
+            self.Orient(node, nxt)
+
+            rack_occupied = self.robot.Forward_Until_Rack(80, time=2000)
+            if not rack_occupied:
+                self.robot.forklift_servo.set_angle(self.robot.forklift_raise_angle)
+                self.robot.Drop_Box()
+
+                # Return from the rack spur using the turn opposite to its side.
+                self.Turn(-nxt.side, reverse=True)
+
+            else:
+                self.next_rack(nxt.side)  
+
+        else:
+            self.NavStep(node, nxt)
 
     def FollowRoute(self):
         routeCopy = deque(self.route)
         #set start to first node in route and destination to second
-        node = routeCopy.popleft()
-        nxt = routeCopy.popleft()
+        if len(routeCopy) >= 2:
+            node = routeCopy.popleft()
+            nxt = routeCopy.popleft()
+        else:
+            print("No route to follow")
+            return
+        
         #now loop through until route is empty:
         while len(routeCopy) > 0:
             #go to next node
-            self.NavStep(node, nxt)
-
-            if (node, nxt) == (lwj9, crsw):
-                self.robot.update_side("w")
-            if (node, nxt) == (crsw, lwj9):
-                self.robot.update_side(None)
-            if (node, nxt) == (crse, lej9):
-                self.robot.update_side(None)
-            if (node, nxt) == (lej9, crse):
-                self.robot.update_side("e")
-
+            self.FollowStep(node, nxt)
             #current node is now old destination
             node = nxt
             #new destination is start of remaining route
             nxt = routeCopy.popleft()
         #at the end of this loop, route will be empty but we won't have gone to the last node. so
-        self.NavStep(node, nxt) #do the final step
+        self.FollowStep(node, nxt) #do the final step
 
-        self.current = nxt
+
+    def next_rack(self, side, n=1):
+        # Do a reverse turn towards next rack
+        self.Turn(-self.polarity * side, reverse=True)
+            
+        self.robot.Forward_Until_Node(80)
+        # Turn into rack
+        self.Turn(self.polarity * side)
+       
+        # Box drop sequence
+        rack_occupied = self.robot.Forward_Until_Rack(80, time=2000)
+        if not rack_occupied:
+            self.robot.forklift_servo.set_angle(self.robot.forklift_raise_angle)
+            self.robot.Drop_Box()
+        
+            # Return from the rack spur using the turn opposite to its side.
+            self.Turn(side * self.polarity, reverse=True)
+
+            # Need to return to the "current" node, the junction next to first rack
+            for x in range(n):
+                self.robot.Forward_Until_node(100)
+
+        else:
+            self.next_rack(side, n=n+1)
+
+
+
 
     def find_path(self, strt, end):
+        destinations = set(end) if isinstance(end, tuple) else {end}
         queue = deque([strt]) # Allows popleft
         came_from = {strt: None}  #Dictionary where the value of each key is the node which comes before the key node in the path
+        destination = None
 
         while queue:
             node = queue.popleft()
-            if node == end: #If we found the endpoint
+            if node in destinations: #If we found an endpoint
+                destination = node
                 break
             for nxt in node.neighbours:  #Loop through neighbours to current node
                 if nxt is not None and nxt not in came_from:  #If we haven't already looked at this neighbour node 
-                    came_from[nxt] = node       #Add (nxt;node) pair to dictionary
+                    came_from[nxt] = node       #Add (nxt;node) pair to dictionary ie the new node and where it came from
                     queue.append(nxt)       #Add node to the queue of nodes to explore it's neighbours
         
+        if destination is None:
+            raise ValueError("No destination is reachable from the starting node")
+
         route = []
-        node = end      
+        node = destination
         while node is not None:
             route.append(node)
             node = came_from[node]      # Travel back from end using dictionary
         route.reverse()
-        self.route = route
+        self.route = route    #Set route
+        return destination
 
 
-        
-    def get_route(self, polarity):  # Not pretty, potentially rethink
-        
-        if self.robot.has_box == True:
-            if polarity == 1:
-                if self.robot.side == "w":
-                    if not self.current.rack:
-                        self.find_path(self.current, uwr6)
-                    else:
-                        pass # Go to next rack
 
-                if self.robot.side == "e":
-                    if not self.current.rack:
-                        self.find_path(self.current, uer6)
-                    else:
-                        pass
+    def get_route_for_box_state(self, has_box):
+        """Route to a rack when carrying a box, otherwise to the nearest box."""
+        if has_box:
+            if self.polarity not in (-1, 1):
+                raise ValueError("Box polarity must be -1 or 1 before routing to a rack")
+            if self.current.side not in (-1, 1):
+                raise ValueError("Current node must be on the west or east side")
 
-            elif polarity == -1:
-                if self.robot.side == "w":
-                    if not self.current.rack:
-                        self.find_path(self.current, lwr6)
-                    else:
-                        pass # Go to next rack
-                
-                if self.robot.side == "e":
-                    if not self.current.rack:
-                        self.find_path(self.current, ler6)
-                    else:
-                        pass
+            rack_by_side_and_polarity = {
+                (1, -1): ler6,
+                (1, 1): uer6,
+                (-1, -1): lwr6,
+                (-1, 1): uwr6,
+            }
+            destination = rack_by_side_and_polarity[(self.current.side, self.polarity)]
+            return self.find_path(self.current, destination)
+    
 
-        if not self.robot.has_box:
-            self.find_path(self.current, leb2)
+        box_nodes = (lwb1, lwb2, leb1, leb2)
+        return self.find_path(self.current, box_nodes)
                         
 
 
@@ -195,45 +245,44 @@ lcej = Crossroads("lcej", [])  # Just northeast of start
 lcwj = Crossroads("lcwj", [])  # Just northwest of start
 
 # lower west racks
-lwr1 = Crossroads("lwr1", [None, None, None, lwj1], rack=True)
-lwr2 = Crossroads("lwr2", [None, None, None, lwj2], rack=True)
-lwr3 = Crossroads("lwr3", [None, None, None, lwj3], rack=True)
-lwr4 = Crossroads("lwr4", [None, None, None, lwj4], rack=True)
-lwr5 = Crossroads("lwr5", [None, None, None, lwj5], rack=True)
-lwr6 = Crossroads("lwr6", [None, None, None, lwj6], rack=True)
+lwr1 = Crossroads("lwr1", [None, None, None, lwj1], side=-1, rack=True)
+lwr2 = Crossroads("lwr2", [None, None, None, lwj2], side=-1, rack=True)
+lwr3 = Crossroads("lwr3", [None, None, None, lwj3], side=-1, rack=True)
+lwr4 = Crossroads("lwr4", [None, None, None, lwj4], side=-1, rack=True)
+lwr5 = Crossroads("lwr5", [None, None, None, lwj5], side=-1, rack=True)
+lwr6 = Crossroads("lwr6", [None, None, None, lwj6], side=-1, rack=True)
 
 # lower west boxes
-lwb1 = Crossroads("lwb1", [], occupied=True)
-lwb2 = Crossroads("lwb2", [], occupied=True)
+lwb1 = Crossroads("lwb1", [], side=-1, occupied=True)
+lwb2 = Crossroads("lwb2", [], side=-1, occupied=True)
 
 # lower east racks
-ler1 = Crossroads("ler1", [None, lej1, None, None], rack=True)
-ler2 = Crossroads("ler2", [None, lej2, None, None], rack=True)
-ler3 = Crossroads("ler3", [None, lej3, None, None], rack=True)
-ler4 = Crossroads("ler4", [None, lej4, None, None], rack=True)
-ler5 = Crossroads("ler5", [None, lej5, None, None], rack=True)
-ler6 = Crossroads("ler6", [None, lej6, None, None], rack=True)
+ler1 = Crossroads("ler1", [None, lej1, None, None], side=1, rack=True)
+ler2 = Crossroads("ler2", [None, lej2, None, None], side=1, rack=True)
+ler3 = Crossroads("ler3", [None, lej3, None, None], side=1, rack=True)
+ler4 = Crossroads("ler4", [None, lej4, None, None], side=1, rack=True)
+ler5 = Crossroads("ler5", [None, lej5, None, None], side=1, rack=True)
+ler6 = Crossroads("ler6", [None, lej6, None, None], side=1, rack=True)
 
 # lower east boxes
-leb1 = Crossroads("leb1", [], occupied=True)
-leb2 = Crossroads("leb2", [], occupied=True)
+leb1 = Crossroads("leb1", [], side=1, occupied=True)
+leb2 = Crossroads("leb2", [], side=1, occupied=True)
 
 # upper west racks
-uwr1 = Crossroads("uwr1", [], rack=True)
-uwr2 = Crossroads("uwr2", [], rack=True)
-uwr3 = Crossroads("uwr3", [], rack=True)
-uwr4 = Crossroads("uwr4", [], rack=True)
-uwr5 = Crossroads("uwr5", [], rack=True)
-uwr6 = Crossroads("uwr6", [], rack=True)
+uwr1 = Crossroads("uwr1", [], side=-1, rack=True)
+uwr2 = Crossroads("uwr2", [], side=-1, rack=True)
+uwr3 = Crossroads("uwr3", [], side=-1, rack=True)
+uwr4 = Crossroads("uwr4", [], side=-1, rack=True)
+uwr5 = Crossroads("uwr5", [], side=-1, rack=True)
+uwr6 = Crossroads("uwr6", [], side=-1, rack=True)
 
 # upper east racks
-uer1 = Crossroads("uer1", [], rack=True)
-uer2 = Crossroads("uer2", [], rack=True)
-uer3 = Crossroads("uer3", [], rack=True)
-uer4 = Crossroads("uer4", [], rack=True)
-uer5 = Crossroads("uer5", [], rack=True)
-uer6 = Crossroads("uer6", [], rack=True)
-
+uer1 = Crossroads("uer1", [], side=1, rack=True)
+uer2 = Crossroads("uer2", [], side=1, rack=True)
+uer3 = Crossroads("uer3", [], side=1, rack=True)
+uer4 = Crossroads("uer4", [], side=1, rack=True)
+uer5 = Crossroads("uer5", [], side=1, rack=True)
+uer6 = Crossroads("uer6", [], side=1, rack=True)
 
 #CONNECTING NODES
 #lower western racks

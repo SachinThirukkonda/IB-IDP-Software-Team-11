@@ -4,6 +4,7 @@ from utime import sleep_ms
 
 import actuators
 import sensors
+import leds
 from robot import Robot
 from Navigation import Navigator
 import Navigation as m
@@ -11,16 +12,10 @@ import Navigation as m
 
 def run(robot):
     """Main pipeline for the robot."""
-    return robot.test_magnetometer()
+    navigator.get_route_for_box_state(has_box=False)
+    navigator.get_route_for_box_state(has_box=True)
 
-    '''
-    navigator.find_path(m.strt, m.leb2)
-    navigator.FollowRoute()
-    navigator.find_path(m.leb2, m.ler6)
-    navigator.FollowRoute()
-    navigator.find_path(m.ler6, m.strt)
-    navigator.FollowRoute()
-    '''
+
     
 
 button = Pin("GP21", Pin.IN, Pin.PULL_DOWN)
@@ -37,7 +32,13 @@ right_light_sensor = sensors.Light_Sensor("GP8")
 far_left_light_sensor = sensors.Light_Sensor("GP10")
 far_right_light_sensor = sensors.Light_Sensor("GP11")
 
-magnetometer = sensors.Magnetometer(Pin("GP28"))
+
+led_red = leds.LED("GP4")
+led_green = leds.LED("GP2")
+led_yellow = leds.LED("GP3")
+
+magnetometer = sensors.Magnetometer(Pin("GP28")
+
 collection_distance_sensor = sensors.Distance_Sensor(sda=16, scl=17)
 #dropoff_distance_sensor = sensors.Distance_Sensor(19, 20)
 dropoff_distance_sensor = None
@@ -68,6 +69,9 @@ robot = Robot(
     far_left_light_sensor=far_left_light_sensor,
     far_right_light_sensor=far_right_light_sensor,
     magnetometer=magnetometer,
+    led_red=led_red,
+    led_green=led_green,
+    led_yellow=led_yellow,
     collection_distance_sensor=collection_distance_sensor,
     dropoff_distance_sensor=dropoff_distance_sensor
     )
@@ -89,13 +93,15 @@ robot.reset()
 while True:
     if button.value() == 1 and running == False:
         print("Button pressed. Starting robot.")
+        robot.led_yellow.start_flash()
         sleep_ms(1000)  # Debounce delay
         running = True
         
     if button.value() == 1 and running == True:
         print("Button pressed. Stopping robot.")
+        robot.led_yellow.stop_flash()
         sleep_ms(1000)  # Debounce delay
-        running = False    
+        running = False
         
 
     try:
