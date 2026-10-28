@@ -441,9 +441,9 @@ class Robot:
             sleep_ms(20)
                     
     def test_magnetometer(self):        
-        if self.magnetometer is not None:           
-            self.magnetometer.plot()           
-            self.magnetometer.test()           
+        if self.magnetometer is not None:                   
+            self.magnetometer.test() 
+            sleep_ms(self.control_period)          
             return True      
         else:            
             print("Magnetometer not initialized.")    

@@ -11,7 +11,7 @@ import Navigation as m
 
 def run(robot):
     """Main pipeline for the robot."""
-    return robot.update()
+    return robot.test_magnetometer()
 
     '''
     navigator.find_path(m.strt, m.leb2)
@@ -37,7 +37,7 @@ right_light_sensor = sensors.Light_Sensor("GP8")
 far_left_light_sensor = sensors.Light_Sensor("GP10")
 far_right_light_sensor = sensors.Light_Sensor("GP11")
 
-magnetometer = sensors.Magnetometer(28)
+magnetometer = sensors.Magnetometer(Pin("GP28"))
 collection_distance_sensor = sensors.Distance_Sensor(sda=16, scl=17)
 #dropoff_distance_sensor = sensors.Distance_Sensor(19, 20)
 dropoff_distance_sensor = None
