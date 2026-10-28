@@ -21,6 +21,17 @@ class Navigator:
         self.orientation = 1
         self.robot = robot
         self.current = strt 
+        self.polarity = 0
+
+    def Turn(self, direction, reverse=False):
+        """Turn the robot and keep the navigator's orientation in sync."""
+        if direction == 2:
+            self.robot.One_Eighty_Degree_Turn()
+        elif reverse:
+            self.robot.Reverse_Turn(direction)
+        else:
+            self.robot.Turn(direction)
+        self.orientation = (self.orientation + direction) % 4
 
     def Orient(self, node, nxt):
         #find difference between own orientation and location of destination
@@ -33,20 +44,41 @@ class Navigator:
         if delta_orientation == 0:
             return
         if delta_orientation == 1:
-            self.orientation += 1
             #turn right
-            self.robot.Turn(1)
+            self.Turn(1)
         if delta_orientation == 2:
             #do a 180
-            self.robot.one_eighty_degree_turn()
+            self.Turn(2)
         if delta_orientation == 3:
             #turn left
-            self.robot.Turn(-1)
-            self.orientation -= 1
+            self.Turn(-1)
     
     def NavStep(self, node, nxt):
         self.Orient(node, nxt)
-        self.robot.Forward_Until_Node(80)
+        self.robot.Forward_Until_Node(100)
+
+    def FollowStep(self, node, nxt):
+        if nxt.occupied:
+            self.Orient(node, nxt)
+            self.polarity = self.robot.Collect_Box()
+            # Return from the box spur using the turn opposite to its side.
+            self.Turn(-nxt.side * self.polarity, reverse=True)
+        elif nxt.rack:
+            self.Orient(node, nxt)
+
+            rack_occupied = self.robot.Forward_Until_Rack(80, time=2000)
+            if not rack_occupied:
+                self.robot.forklift_servo.set_angle(self.robot.forklift_raise_angle)
+                self.robot.Drop_Box()
+
+                # Return from the rack spur using the turn opposite to its side.
+                self.Turn(-nxt.side, reverse=True)
+
+            else:
+                self.next_rack(nxt.side)  
+
+        else:
+            self.NavStep(node, nxt)
 
     def FollowRoute(self):
         routeCopy = deque(self.route)
@@ -61,92 +93,92 @@ class Navigator:
         #now loop through until route is empty:
         while len(routeCopy) > 0:
             #go to next node
-            self.NavStep(node, nxt)
-
-            if (node, nxt) == (lwj9, crsw):
-                self.robot.update_side("w")
-            if (node, nxt) == (crsw, lwj9):
-                self.robot.update_side(None)
-            if (node, nxt) == (crse, lej9):
-                self.robot.update_side(None)
-            if (node, nxt) == (lej9, crse):
-                self.robot.update_side("e")
-
+            self.FollowStep(node, nxt)
             #current node is now old destination
             node = nxt
             #new destination is start of remaining route
             nxt = routeCopy.popleft()
         #at the end of this loop, route will be empty but we won't have gone to the last node. so
-        self.NavStep(node, nxt) #do the final step
+        self.FollowStep(node, nxt) #do the final step
 
-        self.current = nxt
+
+    def next_rack(self, side, n=1):
+        # Do a reverse turn towards next rack
+        self.Turn(-self.polarity * side, reverse=True)
+            
+        self.robot.Forward_Until_Node(80)
+        # Turn into rack
+        self.Turn(self.polarity * side)
+       
+        # Box drop sequence
+        rack_occupied = self.robot.Forward_Until_Rack(80, time=2000)
+        if not rack_occupied:
+            self.robot.forklift_servo.set_angle(self.robot.forklift_raise_angle)
+            self.robot.Drop_Box()
+        
+            # Return from the rack spur using the turn opposite to its side.
+            self.Turn(side * self.polarity, reverse=True)
+
+            # Need to return to the "current" node, the junction next to first rack
+            for x in range(n):
+                self.robot.Forward_Until_node(100)
+
+        else:
+            self.next_rack(side, n=n+1)
+
+
+
 
     def find_path(self, strt, end):
+        destinations = set(end) if isinstance(end, tuple) else {end}
         queue = deque([strt]) # Allows popleft
         came_from = {strt: None}  #Dictionary where the value of each key is the node which comes before the key node in the path
+        destination = None
 
         while queue:
             node = queue.popleft()
-            if node == end: #If we found the endpoint
+            if node in destinations: #If we found an endpoint
+                destination = node
                 break
             for nxt in node.neighbours:  #Loop through neighbours to current node
                 if nxt is not None and nxt not in came_from:  #If we haven't already looked at this neighbour node 
                     came_from[nxt] = node       #Add (nxt;node) pair to dictionary ie the new node and where it came from
                     queue.append(nxt)       #Add node to the queue of nodes to explore it's neighbours
         
+        if destination is None:
+            raise ValueError("No destination is reachable from the starting node")
+
         route = []
-        node = end      
+        node = destination
         while node is not None:
             route.append(node)
             node = came_from[node]      # Travel back from end using dictionary
         route.reverse()
-        self.route = route
-
-    def next_rack(self, side, polarity):
-        # Do a 180 to get oriented
-        self.robot.Forward_Until_Node(80)
-        # Turn right if upper right or lower left, left if upper left or lower right
-        self.robot.Turn(polarity*side)
-        self.robot.Forward_Until_Node(30)
-        self.robot.Turn(polarity*side)
-        self.robot.Forward_Until_Node(80)
-        self.route = []
+        self.route = route    #Set route
+        return destination
 
 
-        
-    def get_route(self, polarity):  # Not pretty, potentially rethink
-        # side: 1 right/east, -1 left/west
-        # polarity: 1 upper, -1 lower
-        if self.robot.has_box == True:
-            if polarity == 1:
-                if self.current.side == -1:
-                    if not self.current.rack:
-                        self.find_path(self.current, uwr6)
-                    else:
-                        # Rack has box already, go to next
-                        self.next_rack(self.current.side, polarity)
 
-                if self.current.side == 1:
-                    if not self.current.rack:
-                        self.find_path(self.current, uer6)
-                    else:
-                        self.next_rack(self.current.side, polarity)
+    def get_route_for_box_state(self, has_box):
+        """Route to a rack when carrying a box, otherwise to the nearest box."""
+        if has_box:
+            if self.polarity not in (-1, 1):
+                raise ValueError("Box polarity must be -1 or 1 before routing to a rack")
+            if self.current.side not in (-1, 1):
+                raise ValueError("Current node must be on the west or east side")
 
-            elif polarity == -1:
-                if self.current.side == -1:
-                    if not self.current.rack:
-                        self.find_path(self.current, lwr6)
-                    else:
-                        self.next_rack(self.current.side, polarity)
-                
-                if self.current.side == 1:
-                    if not self.current.rack:
-                        self.find_path(self.current, ler6)
-                    else:
-                        self.next_rack(self.current.side, polarity)
+            rack_by_side_and_polarity = {
+                (1, -1): ler6,
+                (1, 1): uer6,
+                (-1, -1): lwr6,
+                (-1, 1): uwr6,
+            }
+            destination = rack_by_side_and_polarity[(self.current.side, self.polarity)]
+            return self.find_path(self.current, destination)
+    
 
-        if not self.robot.has_box:
-            self.find_path(self.current, leb2)
+        box_nodes = (lwb1, lwb2, leb1, leb2)
+        return self.find_path(self.current, box_nodes)
                         
 
 

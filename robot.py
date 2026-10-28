@@ -37,6 +37,7 @@ class Robot:
         self.at_junction = False
         self.has_box = False
         self.box_polarity = 0
+        self.box_detected = False
 
 
     '''
@@ -156,6 +157,28 @@ class Robot:
                 sleep_ms(self.control_period)
         
         self.drive(1, 0)
+
+
+
+    def Forward_Until_Rack(self, speed, time=2000):
+        """Follow the line toward a rack until it is detected or time expires."""
+        t0 = ticks_ms()
+        self.box_detected = False
+        self.drive(1, speed)
+
+        while time is None or ticks_ms() - t0 < time:
+            if (self.dropoff_distance_sensor is not None
+                    and self.dropoff_distance_sensor.value() <= 50):
+                self.box_detected = True
+                break
+
+            self.drive(1, speed)
+            self.line_following(1)
+            sleep_ms(self.control_period)
+
+        self.drive(1, 0)
+        return self.box_detected
+
 
     def Turn(self, LorR):
         # LorR (Left or Right) is -1 for left and 1 for right.
