@@ -37,7 +37,7 @@ led_red = leds.LED("GP4")
 led_green = leds.LED("GP2")
 led_yellow = leds.LED("GP3")
 
-magnetometer = sensors.Magnetometer(Pin("GP28")
+magnetometer = sensors.Magnetometer(Pin("GP28"))
 
 collection_distance_sensor = sensors.Distance_Sensor(sda=16, scl=17)
 #dropoff_distance_sensor = sensors.Distance_Sensor(19, 20)
