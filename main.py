@@ -12,11 +12,8 @@ import Navigation as m
 
 def run(robot):
     """Main pipeline for the robot."""
-
-    navigator.find_path(m.strt, m.leb2)
-    navigator.FollowRoute()
-    navigator.find_path(m.lej8, m.ler6)
-    navigator.FollowRoute()
+    navigator.get_route_for_box_state(has_box=False)
+    navigator.get_route_for_box_state(has_box=True)
 
 
     
