@@ -16,6 +16,9 @@ def run(robot):
     #navigator.get_route_for_box_state(has_box=True)
     return robot.test_magnetometer()
 
+    return robot.test_light_sensors()
+    
+    return True
 
     
 
@@ -74,16 +77,13 @@ robot = Robot(
     far_left_light_sensor=far_left_light_sensor,
     far_right_light_sensor=far_right_light_sensor,
     magnetometer=magnetometer,
-    led_red=led_red,
-    led_green=led_green,
-    led_yellow=led_yellow,
     collection_distance_sensor=collection_distance_sensor,
     dropoff_distance_sensor=dropoff_distance_sensor
     )
 navigator = Navigator(robot=robot, strt = m.strt)
 
-
 '''
+
 while running:
             try:
                 running = run(robot)
@@ -94,7 +94,9 @@ while running:
                 robot.reset()
             sleep_ms(10)
 robot.reset()
+
 '''
+
 
 while True:
     if button.value() == 1 and running == False:
