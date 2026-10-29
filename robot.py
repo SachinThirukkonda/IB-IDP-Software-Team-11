@@ -462,7 +462,7 @@ class Robot:
                     
     def test_magnetometer(self):        
         if self.magnetometer is not None:                   
-            self.magnetometer.test() 
+            self.magnetometer.value() 
             sleep_ms(self.control_period)          
             return True      
         else:            
