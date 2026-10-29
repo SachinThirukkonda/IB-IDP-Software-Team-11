@@ -14,6 +14,7 @@ def run(robot):
     """Main pipeline for the robot."""
     #navigator.get_route_for_box_state(has_box=False)
     #navigator.get_route_for_box_state(has_box=True)
+    return robot.test_magnetometer()
 
     return robot.test_light_sensors()
     
@@ -30,27 +31,25 @@ right_motor = actuators.Motor(4, 5)
 forklift_servo = actuators.Servo(Pin("GP13"), 0)
 claw_servo = actuators.Servo(Pin("GP15"), 0)
 
-left_light_sensor = sensors.Light_Sensor("GP12")
-right_light_sensor = sensors.Light_Sensor("GP8")
-far_left_light_sensor = sensors.Light_Sensor("GP10")
-far_right_light_sensor = sensors.Light_Sensor("GP11")
+left_light_sensor = sensors.Light_Sensor("GP8")
+right_light_sensor = sensors.Light_Sensor("GP12")
+far_left_light_sensor = sensors.Light_Sensor("GP11")
+far_right_light_sensor = sensors.Light_Sensor("GP10")
 
 
 #led_red = leds.LED("GP4")
 #led_green = leds.LED("GP2")
 #led_yellow = leds.LED("GP3")
-
-
 led_red = None
 led_green = None
 led_yellow = None
 
 magnetometer = sensors.Magnetometer(Pin("GP28"))
 
-#collection_distance_sensor = sensors.Distance_Sensor(sda=16, scl=17)
-#dropoff_distance_sensor = sensors.Distance_Sensor(19, 20)
+collection_distance_sensor = sensors.Distance_Sensor(sda=16, scl=17, config=0)
+#dropoff_distance_sensor = sensors.Distance_Sensor(sda=18, scl=19, config=1)
 dropoff_distance_sensor = None
-collection_distance_sensor = None
+#collection_distance_sensor = None
 
 robot_kwargs = {
     "one_eighty_degree_turn_range": [1000, 1500],  # time in ms for robot to turn 180 degrees
@@ -88,6 +87,7 @@ navigator = Navigator(robot=robot, strt = m.strt)
 while running:
             try:
                 running = run(robot)
+                #print("hello")
             except Exception as e:
                 print("Robot error:", e)
                 running = False
