@@ -62,7 +62,7 @@ class Navigator:
             self.Orient(node, nxt)
             self.polarity = self.robot.Collect_Box()
             # Return from the box spur using the turn opposite to its side.
-            self.Turn(-nxt.side * self.polarity, reverse=True)
+            self.Turn(nxt.side * self.polarity, reverse=True)
         elif nxt.rack:
             self.Orient(node, nxt)
 
@@ -72,7 +72,7 @@ class Navigator:
                 self.robot.Drop_Box()
 
                 # Return from the rack spur using the turn opposite to its side.
-                self.Turn(-nxt.side, reverse=True)
+                self.Turn(nxt.side, reverse=True)
 
             else:
                 self.next_rack(nxt.side)  
@@ -81,7 +81,7 @@ class Navigator:
             self.NavStep(node, nxt)
 
     def FollowRoute(self):
-        routeCopy = deque(self.route)
+        routeCopy = deque(self.route, 100)
         #set start to first node in route and destination to second
         if len(routeCopy) >= 2:
             node = routeCopy.popleft()
@@ -104,7 +104,7 @@ class Navigator:
 
     def next_rack(self, side, n=1):
         # Do a reverse turn towards next rack
-        self.Turn(-self.polarity * side, reverse=True)
+        self.Turn(self.polarity * side, reverse=True)
             
         self.robot.Forward_Until_Node(80)
         # Turn into rack
@@ -117,7 +117,7 @@ class Navigator:
             self.robot.Drop_Box()
         
             # Return from the rack spur using the turn opposite to its side.
-            self.Turn(side * self.polarity, reverse=True)
+            self.Turn(-side * self.polarity, reverse=True)
 
             # Need to return to the "current" node, the junction next to first rack
             for x in range(n):
@@ -131,7 +131,7 @@ class Navigator:
 
     def find_path(self, strt, end):
         destinations = set(end) if isinstance(end, tuple) else {end}
-        queue = deque([strt]) # Allows popleft
+        queue = deque([strt], 100) # Allows popleft
         came_from = {strt: None}  #Dictionary where the value of each key is the node which comes before the key node in the path
         destination = None
 
@@ -204,26 +204,26 @@ class Navigator:
 #DECLARING NODES
 
 # lower west junctions
-lwj1 = Crossroads("lwj1", [])
-lwj2 = Crossroads("lwj2", [])
-lwj3 = Crossroads("lwj3", [])
-lwj4 = Crossroads("lwj4", [])
-lwj5 = Crossroads("lwj5", [])
-lwj6 = Crossroads("lwj6", [])
-lwj7 = Crossroads("lwj7", [])
-lwj8 = Crossroads("lwj8", [])
-lwj9 = Crossroads("lwj9", [])
+lwj1 = Crossroads("lwj1", [], side=-1)
+lwj2 = Crossroads("lwj2", [], side=-1)
+lwj3 = Crossroads("lwj3", [], side=-1)
+lwj4 = Crossroads("lwj4", [], side=-1)
+lwj5 = Crossroads("lwj5", [], side=-1)
+lwj6 = Crossroads("lwj6", [], side=-1)
+lwj7 = Crossroads("lwj7", [], side=-1)
+lwj8 = Crossroads("lwj8", [], side=-1)
+lwj9 = Crossroads("lwj9", [], side=-1)
 
 # lower east junctions
-lej1 = Crossroads("lej1", [])
-lej2 = Crossroads("lej2", [])
-lej3 = Crossroads("lej3", [])
-lej4 = Crossroads("lej4", [])
-lej5 = Crossroads("lej5", [])
-lej6 = Crossroads("lej6", [])
-lej7 = Crossroads("lej7", [])
-lej8 = Crossroads("lej8", [])
-lej9 = Crossroads("lej9", [])
+lej1 = Crossroads("lej1", [], side=1)
+lej2 = Crossroads("lej2", [], side=1)
+lej3 = Crossroads("lej3", [], side=1)
+lej4 = Crossroads("lej4", [], side=1)
+lej5 = Crossroads("lej5", [], side=1)
+lej6 = Crossroads("lej6", [], side=1)
+lej7 = Crossroads("lej7", [], side=1)
+lej8 = Crossroads("lej8", [], side=1)
+lej9 = Crossroads("lej9", [], side=1)
 
 # upper junctions
 ucj1 = Crossroads("ucj1", [])
@@ -368,4 +368,3 @@ lcwj.Update_neighbours([None, lccj, lwj9, None])
 
 # we want the robot to have a start node and a destination node and to know what to do to get bw them
 #this requires knowledge of robot orientation and the geometry of the paths coming out of the node
-

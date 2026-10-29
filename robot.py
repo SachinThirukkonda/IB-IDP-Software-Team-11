@@ -93,9 +93,10 @@ class Robot:
         sleep_ms(50)
 
     def move_to_box(self, speed):
-        
+        '''
         # When magnetometer is implemented
         t0 = ticks_ms()
+        self.magnetometer.update()
         while self.magnetometer.value() == 0 and ticks_ms() < (t0 + self.collection_time):
             self.magnetometer.update()
             self.drive(1, speed)
@@ -124,7 +125,7 @@ class Robot:
             sleep_ms(500)
             self.reset()
         return 1
-        '''
+        
 
     def reset(self):
         self.left_motor.off()
@@ -289,6 +290,23 @@ class Robot:
         self.Reverse_Turn(-1)
         self.Forward_Until_Node(100)
         self.Forward_Until_Node(100)
+        check = self.Turn(1)
+        print("turning complete")
+        self.Collect_Box()
+        self.Reverse_Turn(1)
+        self.Forward_Until_Node(100)
+        self.Forward_Until_Node(100)
+        self.Forward_Until_Node(100)
+        print("turning")
+        check = self.Turn(-1)
+        print("turning complete")
+        self.forklift_servo.set_angle(self.forklift_raise_angle)
+        self.Forward_Until_Node(100, time=2000)
+        self.Drop_Box()
+        self.Reverse_Turn(-1)
+        self.Forward_Until_Node(100)
+        self.Forward_Until_Node(100)
+        self.Forward_Until_Node(100)
         self.Forward_Until_Node(100)
         self.Forward_Until_Node(100)
         print("turning")
@@ -296,6 +314,57 @@ class Robot:
         print("turning complete")
         self.Forward_Until_Node(100)
         self.Forward_Until_Node(100)
+        self.Forward_Until_Node(100)
+        self.Forward_Until_Node(100)
+
+        self.Forward_Until_Node(100)
+        self.Forward_Until_Node(100)
+        print("turning")
+        check = self.Turn(1)
+        print("turning complete")
+        self.Forward_Until_Node(100)
+        print("turning")
+        check = self.Turn(1)
+        print("turning complete")
+        self.Collect_Box()
+        self.Reverse_Turn(-1)
+        self.Forward_Until_Node(100)
+        self.Forward_Until_Node(100)
+        self.Forward_Until_Node(100)
+        print("turning")
+        check = self.Turn(1)
+        print("turning complete")
+        self.forklift_servo.set_angle(self.forklift_raise_angle)
+        self.Forward_Until_Node(100, time=2000)
+        self.Drop_Box()
+        self.Reverse_Turn(1)
+        self.Forward_Until_Node(100)
+        self.Forward_Until_Node(100)
+        check = self.Turn(-1)
+        print("turning complete")
+        self.Collect_Box()
+        self.Reverse_Turn(-1)
+        self.Forward_Until_Node(100)
+        self.Forward_Until_Node(100)
+        self.Forward_Until_Node(100)
+        print("turning")
+        check = self.Turn(1)
+        print("turning complete")
+        self.forklift_servo.set_angle(self.forklift_raise_angle)
+        self.Forward_Until_Node(100, time=2000)
+        self.Drop_Box()
+        self.Reverse_Turn(1)
+        self.Forward_Until_Node(100)
+        self.Forward_Until_Node(100)
+        self.Forward_Until_Node(100)
+        self.Forward_Until_Node(100)
+        self.Forward_Until_Node(100)
+        print("turning")
+        check = self.Turn(-1)
+        print("turning complete")
+        self.Forward_Until_Node(100)
+        self.Forward_Until_Node(100)
+
     
     def motion_control(self):
         self.Forward_Until_Node(100)
@@ -460,8 +529,10 @@ class Robot:
             sleep_ms(20)
                     
     def test_magnetometer(self):        
-        if self.magnetometer is not None:                   
-            self.magnetometer.value() 
+        if self.magnetometer is not None:
+
+            self.magnetometer.update()                  
+            print(self.magnetometer.value())
             sleep_ms(self.control_period)          
             return True      
         else:            

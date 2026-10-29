@@ -23,7 +23,7 @@ class Magnetometer:
         value = ordered[len(ordered) // 2]
         if value > 34000:
             return 1
-        elif value < 30500:
+        elif value < 31000:
             return -1
         else:
             return 0

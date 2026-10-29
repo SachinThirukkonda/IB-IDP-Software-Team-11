@@ -12,12 +12,17 @@ import Navigation as m
 
 def run(robot):
     """Main pipeline for the robot."""
-    #navigator.get_route_for_box_state(has_box=False)
-    #navigator.get_route_for_box_state(has_box=True)
-    return robot.test_magnetometer()
-
-    return robot.test_light_sensors()
     
+    navigator.get_route_for_box_state(has_box=False)
+    navigator.FollowRoute()
+    navigator.get_route_for_box_state(has_box=True)
+    navigator.FollowRoute()
+    '''
+    #return robot.test_magnetometer()
+
+    #return robot.test_light_sensors()
+    return robot.update()
+    '''
     return True
 
     
@@ -114,12 +119,13 @@ while True:
 
     try:
         while running:
-            try:
-                running = run(robot)
+            running = run(robot)
+            '''
             except Exception as e:
                 print("Robot error:", e)
                 running = False
                 robot.reset()
+            '''
             sleep_ms(10)
     finally:
         robot.reset()
