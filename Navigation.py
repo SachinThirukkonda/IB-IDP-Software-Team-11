@@ -20,8 +20,9 @@ class Navigator:
         self.route = []
         self.orientation = 1
         self.robot = robot
-        self.current = strt 
+        self.current = strt
         self.polarity = 0
+        self.targeted_box_side = 1
 
     def Turn(self, direction, reverse=False):
         """Turn the robot and keep the navigator's orientation in sync."""
@@ -60,9 +61,11 @@ class Navigator:
     def FollowStep(self, node, nxt):
         if nxt.occupied:
             self.Orient(node, nxt)
+            self.targeted_box_side = nxt.side
             self.polarity = self.robot.Collect_Box()
-            # Return from the box spur using the turn opposite to its side.
+            # Collection returns to the junction this spur branches from.
             self.Turn(nxt.side * self.polarity, reverse=True)
+            self.current = node
         elif nxt.rack:
             self.Orient(node, nxt)
 
@@ -73,18 +76,22 @@ class Navigator:
 
                 # Return from the rack spur using the turn opposite to its side.
                 self.Turn(nxt.side, reverse=True)
+                self.current = node
 
             else:
-                self.next_rack(nxt.side)  
+                self.next_rack(nxt.side)
+                self.current = node
 
         else:
             self.NavStep(node, nxt)
+            self.current = nxt
 
     def FollowRoute(self):
         routeCopy = deque(self.route, 100)
         #set start to first node in route and destination to second
         if len(routeCopy) >= 2:
             node = routeCopy.popleft()
+            self.current = node
             nxt = routeCopy.popleft()
         else:
             print("No route to follow")
@@ -164,8 +171,8 @@ class Navigator:
         if has_box:
             if self.polarity not in (-1, 1):
                 raise ValueError("Box polarity must be -1 or 1 before routing to a rack")
-            if self.current.side not in (-1, 1):
-                raise ValueError("Current node must be on the west or east side")
+            if self.targeted_box_side not in (-1, 1):
+                raise ValueError("A box must be targeted or picked up before routing to a rack")
 
             rack_by_side_and_polarity = {
                 (1, -1): ler6,
@@ -173,12 +180,14 @@ class Navigator:
                 (-1, -1): lwr6,
                 (-1, 1): uwr6,
             }
-            destination = rack_by_side_and_polarity[(self.current.side, self.polarity)]
+            destination = rack_by_side_and_polarity[(self.targeted_box_side, self.polarity)]
             return self.find_path(self.current, destination)
     
 
         box_nodes = (lwb1, lwb2, leb1, leb2)
-        return self.find_path(self.current, box_nodes)
+        destination = self.find_path(self.current, box_nodes)
+        self.targeted_box_side = destination.side
+        return destination
                         
 
 
