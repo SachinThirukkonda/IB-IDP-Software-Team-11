@@ -64,7 +64,7 @@ class Navigator:
             self.targeted_box_side = nxt.side
             self.polarity = self.robot.Collect_Box()
             # Collection returns to the junction this spur branches from.
-            self.Turn(nxt.side * self.polarity, reverse=True)
+            self.Turn(-self.targeted_box_side * self.polarity, reverse=True)
             self.current = node
         elif nxt.rack:
             self.Orient(node, nxt)
@@ -75,7 +75,7 @@ class Navigator:
                 self.robot.Drop_Box()
 
                 # Return from the rack spur using the turn opposite to its side.
-                self.Turn(nxt.side, reverse=True)
+                self.Turn(-self.targeted_box_side, reverse=True)
                 self.current = node
 
             else:
@@ -111,7 +111,7 @@ class Navigator:
 
     def next_rack(self, side, n=1):
         # Do a reverse turn towards next rack
-        self.Turn(self.polarity * side, reverse=True)
+        self.Turn(-self.polarity * self.targeted_box_side, reverse=True)
             
         self.robot.Forward_Until_Node(80)
         # Turn into rack
@@ -124,7 +124,7 @@ class Navigator:
             self.robot.Drop_Box()
         
             # Return from the rack spur using the turn opposite to its side.
-            self.Turn(-side * self.polarity, reverse=True)
+            self.Turn(self.targeted_box_side * self.polarity, reverse=True)
 
             # Need to return to the "current" node, the junction next to first rack
             for x in range(n):
