@@ -7,7 +7,7 @@ from Navigation import Navigator
 class Robot:
     def __init__(self, parameters, left_motor, right_motor, forklift_servo, claw_servo, 
                  left_light_sensor, right_light_sensor, far_left_light_sensor, far_right_light_sensor, magnetometer,
-                 led_red, led_green, led_yellow, collection_distance_sensor, dropoff_distance_sensor):
+                 collection_distance_sensor, dropoff_distance_sensor):
             
         #Initialise hyperparameters
         self._init_parameters(parameters)
@@ -30,9 +30,6 @@ class Robot:
         self.far_left_light_sensor = far_left_light_sensor
         self.far_right_light_sensor = far_right_light_sensor
 
-        self.led_red = led_red
-        self.led_green = led_green
-        self.led_yellow = led_yellow
         
         self.at_junction = False
         self.has_box = False
@@ -96,7 +93,7 @@ class Robot:
         sleep_ms(50)
 
     def move_to_box(self, speed):
-        '''
+        
         # When magnetometer is implemented
         t0 = ticks_ms()
         while self.magnetometer.value() == 0 and ticks_ms() < (t0 + self.collection_time):
@@ -110,6 +107,7 @@ class Robot:
             sleep_ms(self.control_period)
         self.box_polarity = polarity
         return polarity
+        
         '''
         t0 = ticks_ms()
 
@@ -126,6 +124,7 @@ class Robot:
             sleep_ms(500)
             self.reset()
         return 1
+        '''
 
     def reset(self):
         self.left_motor.off()

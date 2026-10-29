@@ -21,9 +21,9 @@ class Magnetometer:
     def value(self):
         ordered = sorted(self.samples)
         value = ordered[len(ordered) // 2]
-        if value > 38000:
+        if value > 34000:
             return 1
-        elif value < 32000:
+        elif value < 30500:
             return -1
         else:
             return 0
