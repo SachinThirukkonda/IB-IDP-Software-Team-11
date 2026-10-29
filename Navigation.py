@@ -75,7 +75,7 @@ class Navigator:
                 self.robot.Drop_Box()
 
                 # Return from the rack spur using the turn opposite to its side.
-                self.Turn(-self.targeted_box_side, reverse=True)
+                self.Turn(self.polarity*self.targeted_box_side, reverse=True)
                 self.current = node
 
             else:
