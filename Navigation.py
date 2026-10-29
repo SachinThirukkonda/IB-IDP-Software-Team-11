@@ -121,7 +121,7 @@ class Navigator:
 
             # Need to return to the "current" node, the junction next to first rack
             for x in range(n):
-                self.robot.Forward_Until_node(100)
+                self.robot.Forward_Until_Node(100)
 
         else:
             self.next_rack(side, n=n+1)
