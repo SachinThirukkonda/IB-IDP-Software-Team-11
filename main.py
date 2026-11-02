@@ -1,5 +1,6 @@
 
 from machine import Pin
+import robot
 from utime import sleep_ms
 
 import actuators
@@ -20,8 +21,8 @@ def run(robot):
     '''
     #return robot.test_magnetometer()
 
-    #return robot.test_light_sensors()
-    return robot.test_leds()
+    return robot.test_magnetometer()
+    return robot.test_()
     
     return True
 
@@ -61,9 +62,9 @@ robot_kwargs = {
     "turning_sleep_time": 250,  # Sleep time during turning actions
     "reverse_turning_sleep_time": 250,  # Sleep time during reverse turning actions
     "control_frequency": 50,  # Control frequency in Hz
-    "claw_close_angle": 10,
+    "claw_close_angle": 22,
     "forklift_default_angle": 108,
-    "claw_open_angle": 45,  # 
+    "claw_open_angle": 110,  # 
     "forklift_lower_angle": 0,
     "forklift_raise_angle": 200,
     "collection_time": 5000
