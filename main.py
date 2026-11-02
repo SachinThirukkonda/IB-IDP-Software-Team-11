@@ -12,7 +12,7 @@ import Navigation as m
 
 def run(robot):
     """Main pipeline for the robot."""
-    
+    '''
     navigator.get_route_for_box_state(has_box=False)
     navigator.FollowRoute()
     navigator.get_route_for_box_state(has_box=True)
@@ -21,8 +21,8 @@ def run(robot):
     #return robot.test_magnetometer()
 
     #return robot.test_light_sensors()
-    return robot.update()
-    '''
+    return robot.test_leds()
+    
     return True
 
     
@@ -84,7 +84,10 @@ robot = Robot(
     led_red=led_red,
     led_yellow=led_yellow,
     collection_distance_sensor=collection_distance_sensor,
-    dropoff_distance_sensor=dropoff_distance_sensor
+    dropoff_distance_sensor=dropoff_distance_sensor,
+    led_red=led_red,
+    led_yellow=led_yellow,
+    led_green=led_green
     )
 navigator = Navigator(robot=robot, strt = m.strt)
 
@@ -113,7 +116,7 @@ while True:
         
     if button.value() == 1 and running == True:
         print("Button pressed. Stopping robot.")
-        #robot.led_yellow.stop_flash()
+        robot.led_yellow.stop_flash()
         sleep_ms(1000)  # Debounce delay
         running = False
         

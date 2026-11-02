@@ -543,5 +543,16 @@ class Robot:
         else:            
             print("Magnetometer not initialized.")    
             return False
+
+    def test_leds(self):
+        self.led_green.on()
+        self.led_yellow.on()
+        self.led_red.on()
+        sleep_ms(1000)
+        self.led_green.off()
+        self.led_yellow.off()
+        self.led_red.off()
+        sleep_ms(1000)
+        return True
         
         

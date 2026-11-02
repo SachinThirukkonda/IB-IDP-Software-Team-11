@@ -4,9 +4,18 @@ from libs.VL53L0X.VL53L0X import VL53L0X
 class Light_Sensor:
     def __init__(self, pin):
         self.light_sensor = Pin(pin, Pin.IN, Pin.PULL_UP)
+        self.window_size = 3
+        self.readings = []
     
     def value(self):
-        return self.light_sensor.value()
+        reading = self.light_sensor.value()
+        self.readings.append(reading)
+
+        if len(self.readings) > self.window_size:
+            self.readings.pop(0)
+        if len(set(self.readings)) == 1:
+            return self.readings[0]
+        return 0
     
     def test(self):
         reading = self.light_sensor.value()
