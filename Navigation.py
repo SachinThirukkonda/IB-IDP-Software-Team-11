@@ -2,7 +2,7 @@ from box import box
 from collections import deque
 
 class Crossroads:
-    def __init__(self, name, neighbours, side=None, occupied = False, rack = False):
+    def __init__(self, name, neighbours, side=0, occupied = False, rack = False):
         #neighbours are [north node, east node, south node, west node]
         self.neighbours = neighbours
         self.occupied = occupied #does this have a box?
@@ -23,6 +23,7 @@ class Navigator:
         self.current = strt
         self.polarity = 0
         self.targeted_box_side = 1
+        self.next_box_index = 0
 
     def Turn(self, direction, reverse=False):
         """Turn the robot and keep the navigator's orientation in sync."""
@@ -63,6 +64,7 @@ class Navigator:
             self.Orient(node, nxt)
             self.targeted_box_side = nxt.side
             self.polarity = self.robot.Collect_Box()
+            
             # Collection returns to the junction this spur branches from.
             self.Turn(-self.targeted_box_side * self.polarity, reverse=True)
             self.current = node
@@ -167,7 +169,7 @@ class Navigator:
 
 
     def get_route_for_box_state(self, has_box):
-        """Route to a rack when carrying a box, otherwise to the nearest box."""
+        """Route to a rack when carrying, otherwise to the next box in rotation."""
         if has_box:
             if self.polarity not in (-1, 1):
                 raise ValueError("Box polarity must be -1 or 1 before routing to a rack")
@@ -185,7 +187,13 @@ class Navigator:
     
 
         box_nodes = (lwb1, lwb2, leb1, leb2)
-        destination = self.find_path(self.current, box_nodes)
+        destination = box_nodes[self.next_box_index]
+        self.next_box_index = (self.next_box_index + 1) % len(box_nodes)
+        # These pickup points are reused, so always treat the selected point
+        # as a box stop even if an earlier run marked it empty.
+        destination.occupied = True
+
+        self.find_path(self.current, destination)
         self.targeted_box_side = destination.side
         return destination
                         

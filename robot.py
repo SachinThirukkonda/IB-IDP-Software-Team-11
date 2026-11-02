@@ -7,7 +7,8 @@ from Navigation import Navigator
 class Robot:
     def __init__(self, parameters, left_motor, right_motor, forklift_servo, claw_servo, 
                  left_light_sensor, right_light_sensor, far_left_light_sensor, far_right_light_sensor, magnetometer,
-                 collection_distance_sensor, dropoff_distance_sensor, led_red, led_yellow, led_green):
+                 collection_distance_sensor, dropoff_distance_sensor,
+                 led_green=None, led_red=None, led_yellow=None):
             
         #Initialise hyperparameters
         self._init_parameters(parameters)
@@ -21,6 +22,9 @@ class Robot:
         self.claw_servo.set_angle(self.claw_open_angle)
 
         self.magnetometer = magnetometer
+        self.led_green = led_green
+        self.led_red = led_red
+        self.led_yellow = led_yellow
         self.collection_distance_sensor = collection_distance_sensor
         self.dropoff_distance_sensor = dropoff_distance_sensor
 
@@ -30,11 +34,6 @@ class Robot:
         self.far_left_light_sensor = far_left_light_sensor
         self.far_right_light_sensor = far_right_light_sensor
 
-        self.led_red = led_red
-        self.led_yellow = led_yellow
-        self.led_green = led_green
-
-        
         self.at_junction = False
         self.has_box = False
         self.box_polarity = 0
@@ -47,6 +46,18 @@ class Robot:
     def drive(self, direction, speed):
         self.left_motor.on(dir=direction, speed=speed)
         self.right_motor.on(dir=direction, speed=speed)
+
+    def _set_box_polarity_leds(self, polarity):
+        """Show the carried box pole with one steady LED."""
+        if self.led_red:
+            self.led_red.off()
+        if self.led_green:
+            self.led_green.off()
+
+        if polarity == 1 and self.led_red:  # North pole
+            self.led_red.on()
+        elif polarity == -1 and self.led_green:  # South pole
+            self.led_green.on()
 
     def line_Sensor_readings(self):
         left_line = self.left_light_sensor.value()
@@ -97,38 +108,21 @@ class Robot:
         sleep_ms(50)
 
     def move_to_box(self, speed):
-        '''
-        # When magnetometer is implemented
         t0 = ticks_ms()
+        polarity = 0
         self.magnetometer.update()
         while self.magnetometer.value() == 0 and ticks_ms() < (t0 + self.collection_time):
             self.magnetometer.update()
             self.drive(1, speed)
             sleep_ms(self.control_period)
             polarity = self.magnetometer.value()
+        polarity = self.magnetometer.value()
         if polarity == 0:
-            # Aborted
             self.drive(0, speed)
             sleep_ms(self.control_period)
-        self.box_polarity = polarity
-        return polarity
-        
-        '''
-        t0 = ticks_ms()
-
-        while self.collection_distance_sensor.value() > 50 and ticks_ms() < (t0 + self.collection_time):
-            self.drive(1, speed)
-            sleep_ms(self.control_period)
-        if ticks_ms() >= (t0 + self.collection_time):
-            # Aborted
-            self.drive(0, speed)
-            sleep_ms(self.collection_time)
         else:
-            print("Box found")
-            self.drive(1, speed)
-            sleep_ms(500)
-            self.reset()
-        return 1
+            self.box_polarity = polarity
+        return polarity
         
 
     def reset(self):
@@ -240,6 +234,10 @@ class Robot:
         self.claw_servo.set_angle(self.claw_close_angle)
         sleep_ms(1000)
         self.forklift_servo.set_angle(self.forklift_default_angle)
+
+        self.box_polarity = box_polarity
+        self.has_box = box_polarity in (-1, 1)
+        self._set_box_polarity_leds(box_polarity)
         
         return box_polarity
 
@@ -254,6 +252,9 @@ class Robot:
         sleep_ms(1000)
         self.claw_servo.set_angle(self.claw_open_angle)
         sleep_ms(1000)
+        self.has_box = False
+        self.box_polarity = 0
+        self._set_box_polarity_leds(0)
         # Reset robot to ensure it is not moving and servos are in the correct position
         self.reset()
 
