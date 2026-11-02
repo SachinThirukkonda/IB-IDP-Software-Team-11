@@ -18,9 +18,11 @@ class LED:
         self.led.toggle()
 
     def on(self):
+        self.timer.deinit()
         self.led.on()
 
     def off(self):
+        self.timer.deinit()
         self.led.off()
 
         
