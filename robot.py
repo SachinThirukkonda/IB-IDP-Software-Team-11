@@ -97,7 +97,6 @@ class Robot:
         sleep_ms(50)
 
     def move_to_box(self, speed):
-        '''
         # When magnetometer is implemented
         t0 = ticks_ms()
         self.magnetometer.update()
@@ -114,6 +113,7 @@ class Robot:
         return polarity
         
         '''
+        # If magnetmeter is not implemented, use distance sensor to detect box
         t0 = ticks_ms()
 
         while self.collection_distance_sensor.value() > 50 and ticks_ms() < (t0 + self.collection_time):
@@ -129,6 +129,7 @@ class Robot:
             sleep_ms(500)
             self.reset()
         return 1
+        '''
         
 
     def reset(self):
@@ -164,7 +165,7 @@ class Robot:
 
 
 
-    def Forward_Until_Rack(self, speed, time=2000):
+    def Forward_Until_Rack(self, speed, time=1500):
         """Follow the line toward a rack until it is detected or time expires."""
         t0 = ticks_ms()
         self.box_detected = False
@@ -179,6 +180,9 @@ class Robot:
             self.drive(1, speed)
             self.line_following(1)
             sleep_ms(self.control_period)
+        self.forklift_servo.set_angle(self.forklift_raise_angle)
+        self.Forward_Until_Node(speed=100)
+
 
         self.drive(1, 0)
         return self.box_detected
