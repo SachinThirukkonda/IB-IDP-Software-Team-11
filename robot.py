@@ -7,7 +7,7 @@ from Navigation import Navigator
 class Robot:
     def __init__(self, parameters, left_motor, right_motor, forklift_servo, claw_servo, 
                  left_light_sensor, right_light_sensor, far_left_light_sensor, far_right_light_sensor, magnetometer,
-                 collection_distance_sensor, dropoff_distance_sensor):
+                 collection_distance_sensor, dropoff_distance_sensor, led_red, led_yellow, led_green):
             
         #Initialise hyperparameters
         self._init_parameters(parameters)
@@ -29,6 +29,10 @@ class Robot:
         
         self.far_left_light_sensor = far_left_light_sensor
         self.far_right_light_sensor = far_right_light_sensor
+
+        self.led_red = led_red
+        self.led_yellow = led_yellow
+        self.led_green = led_green
 
         
         self.at_junction = False
@@ -538,5 +542,16 @@ class Robot:
         else:            
             print("Magnetometer not initialized.")    
             return False
+
+    def test_leds(self):
+        self.led_green.on()
+        self.led_yellow.on()
+        self.led_red.on()
+        sleep_ms(1000)
+        self.led_green.off()
+        self.led_yellow.off()
+        self.led_red.off()
+        sleep_ms(1000)
+        return True
         
         
