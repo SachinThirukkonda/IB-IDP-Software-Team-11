@@ -47,16 +47,13 @@ led_red = leds.LED("GP4")
 led_green = leds.LED("GP2")
 led_yellow = leds.LED("GP3")
 
+
 magnetometer = sensors.Magnetometer(Pin("GP28"))
 
-#collection_distance_sensor = sensors.Distance_Sensor(sda=16, scl=17, config=0)
-#dropoff_distance_sensor = sensors.Distance_Sensor(sda=18, scl=19, config=1)
-dropoff_distance_sensor = None
-collection_distance_sensor = None
-
-led_red.on()
-led_green.on()
-led_yellow.on()
+collection_distance_sensor = sensors.Distance_Sensor(sda=16, scl=17, config=0)
+dropoff_distance_sensor = sensors.Distance_Sensor(sda=18, scl=19, config=1)
+#dropoff_distance_sensor = None
+#collection_distance_sensor = None
 
 robot_kwargs = {
     "one_eighty_degree_turn_range": [1000, 1500],  # time in ms for robot to turn 180 degrees
@@ -84,6 +81,9 @@ robot = Robot(
     far_left_light_sensor=far_left_light_sensor,
     far_right_light_sensor=far_right_light_sensor,
     magnetometer=magnetometer,
+    led_green=led_green,
+    led_red=led_red,
+    led_yellow=led_yellow,
     collection_distance_sensor=collection_distance_sensor,
     dropoff_distance_sensor=dropoff_distance_sensor,
     led_red=led_red,
@@ -111,7 +111,7 @@ robot.reset()
 while True:
     if button.value() == 1 and running == False:
         print("Button pressed. Starting robot.")
-        robot.led_yellow.start_flash()
+        led_yellow.start_flash()
         sleep_ms(1000)  # Debounce delay
         running = True
         
