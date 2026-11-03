@@ -13,16 +13,10 @@ import Navigation as m
 
 def run(robot):
     """Main pipeline for the robot."""
-    '''
     navigator.get_route_for_box_state(has_box=False)
     navigator.FollowRoute()
     navigator.get_route_for_box_state(has_box=True)
     navigator.FollowRoute()
-    '''
-
-    robot.claw_servo.set_angle(50)
-    
-    return False
 
     
 
@@ -103,31 +97,31 @@ robot.reset()
 '''
 
 led_yellow.on()
+button_was_pressed = False
 
 while True:
-    if button.value() == 1 and running == False:
-        print("Button pressed. Starting robot.")
-        led_yellow.off()
-        led_yellow.start_flash()
-        sleep_ms(1000)  # Debounce delay
-        running = True
-        
-    if button.value() == 1 and running == True:
-        print("Button pressed. Stopping robot.")
-        led_yellow.stop_flash()
-        sleep_ms(1000)  # Debounce delay
-        running = False
-        
-
-    try:
-        while running:
-            running = run(robot)
-            '''
-            except Exception as e:
-                print("Robot error:", e)
-                running = False
+    button_pressed = button.value() == 1
+    if button_pressed and not button_was_pressed:
+        sleep_ms(50)  # Debounce the button press.
+        if button.value() == 1:
+            running = not running
+            if running:
+                print("Button pressed. Starting robot.")
+                led_yellow.start_flash()
+            else:
+                print("Button pressed. Stopping robot.")
+                led_yellow.stop_flash()
                 robot.reset()
-            '''
-            sleep_ms(10)
-    finally:
-        robot.reset()
+
+    button_was_pressed = button.value() == 1
+
+    if running:
+        try:
+            run(robot)
+        except Exception as e:
+            print("Robot error:", e)
+            robot.reset()
+        running = False
+        led_yellow.stop_flash()
+
+    sleep_ms(10)
