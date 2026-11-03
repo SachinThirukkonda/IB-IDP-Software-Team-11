@@ -19,12 +19,10 @@ def run(robot):
     navigator.get_route_for_box_state(has_box=True)
     navigator.FollowRoute()
     '''
-    #return robot.test_magnetometer()
 
-    return robot.test_magnetometer()
-    return robot.test_()
+    robot.claw_servo.set_angle(50)
     
-    return True
+    return False
 
     
 
@@ -50,10 +48,10 @@ led_yellow = leds.LED("GP3")
 
 magnetometer = sensors.Magnetometer(Pin("GP28"))
 
-collection_distance_sensor = sensors.Distance_Sensor(sda=16, scl=17, config=0)
-dropoff_distance_sensor = sensors.Distance_Sensor(sda=18, scl=19, config=1)
-#dropoff_distance_sensor = None
-#collection_distance_sensor = None
+#collection_distance_sensor = sensors.Distance_Sensor(sda=16, scl=17, config=0)
+#dropoff_distance_sensor = sensors.Distance_Sensor(sda=14, scl=15, config=1)
+dropoff_distance_sensor = None
+collection_distance_sensor = None
 
 robot_kwargs = {
     "one_eighty_degree_turn_range": [1000, 1500],  # time in ms for robot to turn 180 degrees
@@ -62,7 +60,7 @@ robot_kwargs = {
     "turning_sleep_time": 250,  # Sleep time during turning actions
     "reverse_turning_sleep_time": 250,  # Sleep time during reverse turning actions
     "control_frequency": 50,  # Control frequency in Hz
-    "claw_close_angle": 22,
+    "claw_close_angle": 50,
     "forklift_default_angle": 108,
     "claw_open_angle": 110,  # 
     "forklift_lower_angle": 0,
@@ -85,10 +83,7 @@ robot = Robot(
     led_red=led_red,
     led_yellow=led_yellow,
     collection_distance_sensor=collection_distance_sensor,
-    dropoff_distance_sensor=dropoff_distance_sensor,
-    led_red=led_red,
-    led_yellow=led_yellow,
-    led_green=led_green
+    dropoff_distance_sensor=dropoff_distance_sensor
     )
 navigator = Navigator(robot=robot, strt = m.strt)
 
@@ -107,17 +102,19 @@ robot.reset()
 
 '''
 
+led_yellow.on()
 
 while True:
     if button.value() == 1 and running == False:
         print("Button pressed. Starting robot.")
+        led_yellow.off()
         led_yellow.start_flash()
         sleep_ms(1000)  # Debounce delay
         running = True
         
     if button.value() == 1 and running == True:
         print("Button pressed. Stopping robot.")
-        robot.led_yellow.stop_flash()
+        led_yellow.stop_flash()
         sleep_ms(1000)  # Debounce delay
         running = False
         

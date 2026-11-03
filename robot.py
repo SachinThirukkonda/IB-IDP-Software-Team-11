@@ -8,7 +8,7 @@ class Robot:
     def __init__(self, parameters, left_motor, right_motor, forklift_servo, claw_servo, 
                  left_light_sensor, right_light_sensor, far_left_light_sensor, far_right_light_sensor, magnetometer,
                  collection_distance_sensor, dropoff_distance_sensor,
-                 led_green=None, led_red=None, led_yellow=None):
+                 led_green, led_red, led_yellow):
             
         #Initialise hyperparameters
         self._init_parameters(parameters)
@@ -108,7 +108,6 @@ class Robot:
         sleep_ms(50)
 
     def move_to_box(self, speed):
-        # When magnetometer is implemented
         t0 = ticks_ms()
         polarity = 0
         self.magnetometer.update()
@@ -121,27 +120,9 @@ class Robot:
         if polarity == 0:
             self.drive(0, speed)
             sleep_ms(self.control_period)
-        self.box_polarity = polarity
-        return polarity
-        
-        '''
-        # If magnetmeter is not implemented, use distance sensor to detect box
-        t0 = ticks_ms()
-
-        while self.collection_distance_sensor.value() > 50 and ticks_ms() < (t0 + self.collection_time):
-            self.drive(1, speed)
-            sleep_ms(self.control_period)
-        if ticks_ms() >= (t0 + self.collection_time):
-            # Aborted
-            self.drive(0, speed)
-            sleep_ms(self.collection_time)
         else:
-            print("Box found")
-            self.drive(1, speed)
-            sleep_ms(500)
-            self.reset()
-        return 1
-        '''
+            self.box_polarity = polarity
+        return polarity
         
 
     def reset(self):
@@ -177,7 +158,7 @@ class Robot:
 
 
 
-    def Forward_Until_Rack(self, speed, time=1500):
+    def Forward_Until_Rack(self, speed, time=2000):
         """Follow the line toward a rack until it is detected or time expires."""
         t0 = ticks_ms()
         self.box_detected = False
@@ -192,9 +173,6 @@ class Robot:
             self.drive(1, speed)
             self.line_following(1)
             sleep_ms(self.control_period)
-        self.forklift_servo.set_angle(self.forklift_raise_angle)
-        self.Forward_Until_Node(speed=100)
-
 
         self.drive(1, 0)
         return self.box_detected
@@ -565,16 +543,5 @@ class Robot:
         else:            
             print("Magnetometer not initialized.")    
             return False
-
-    def test_leds(self):
-        self.led_green.on()
-        self.led_yellow.on()
-        self.led_red.on()
-        sleep_ms(1000)
-        self.led_green.off()
-        self.led_yellow.off()
-        self.led_red.off()
-        sleep_ms(1000)
-        return True
         
         
