@@ -1,19 +1,22 @@
 from machine import Pin, PWM
 
 class Motor:
-    def __init__(self, dirPin, PWMPin):
+    def __init__(self, dirPin, PWMPin, correction=0):
         self.mDir = Pin(dirPin, Pin.OUT)  # set motor direction pin
         self.pwm = PWM(Pin(PWMPin))  # set motor pwm pin
         self.pwm.freq(1000)  # set PWM frequency
         self.pwm.duty_u16(0)  # set duty cycle - 0=off
         self.speed = 0
+        self.correction = correction
         
     def off(self):
         self.pwm.duty_u16(0)
         
     def on(self, dir=1, speed=None):
-        if speed != None:
-            self.speed = speed
+        if speed != None and speed != 0:
+            self.speed = speed - self.correction
+        else:
+            self.speed = 0
         self.mDir.value(dir)                  # forward = 0 reverse = 1 motor
         self.pwm.duty_u16(int(65535 * self.speed / 100))  # speed range 0-100 motor
         
@@ -42,11 +45,10 @@ class Servo:
     MID_DUTY = 4915 # 135°
     MAX_DUTY = 8192 # 270°
     
-    def __init__(self, ServoPin, init_angle):
+    def __init__(self, ServoPin):
         self.servo = PWM(ServoPin)
         self.servo.freq(50)  # 50 Hz for servo
-        self.reset_angle = init_angle
-        self.set_angle(init_angle)
+
  
     # Convert angle (0–270) to duty
     def set_angle(self, angle):
@@ -58,9 +60,5 @@ class Servo:
  
        duty = int(Servo.MIN_DUTY + (angle / 270) * (Servo.MAX_DUTY - Servo.MIN_DUTY))
        self.servo.duty_u16(duty)
-
-
-    def reset(self):
-        self.set_angle(self.reset_angle)
         
     

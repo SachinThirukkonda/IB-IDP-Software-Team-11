@@ -19,47 +19,23 @@ def run(robot):
     navigator.get_route_for_box_state(has_box=True)
     navigator.FollowRoute()
     '''
-    #return robot.test_magnetometer()
-
-    return robot.test_magnetometer()
-    return robot.test_()
+    #return robot.Forward_Until_Node(speed=100)
+    robot.move_to_box(speed=50)
     
+    #robot.test_light_sensors()
     return True
 
-    
+ 
 
 button = Pin("GP21", Pin.IN, Pin.PULL_DOWN)
 running = False
 
-left_motor = actuators.Motor(7, 6)
-right_motor = actuators.Motor(4, 5)
-
-forklift_servo = actuators.Servo(Pin("GP13"), 0)
-claw_servo = actuators.Servo(Pin("GP15"), 0)
-
-left_light_sensor = sensors.Light_Sensor("GP8")
-right_light_sensor = sensors.Light_Sensor("GP12")
-far_left_light_sensor = sensors.Light_Sensor("GP11")
-far_right_light_sensor = sensors.Light_Sensor("GP10")
-
-
-led_red = leds.LED("GP4")
-led_green = leds.LED("GP2")
-led_yellow = leds.LED("GP3")
-
-
-magnetometer = sensors.Magnetometer(Pin("GP28"))
-
-collection_distance_sensor = sensors.Distance_Sensor(sda=16, scl=17, config=0)
-dropoff_distance_sensor = sensors.Distance_Sensor(sda=18, scl=19, config=1)
-#dropoff_distance_sensor = None
-#collection_distance_sensor = None
 
 robot_kwargs = {
     "one_eighty_degree_turn_range": [1000, 1500],  # time in ms for robot to turn 180 degrees
-    "ninety_degree_turn_range": [500, 700],  # time in ms for robot to turn 90 degrees
-    "motor_correction": 25,  # Amount to adjust motor speed for line following
-    "turning_sleep_time": 250,  # Sleep time during turning actions
+    "ninety_degree_turn_range": [600, 1200],  # time in ms for robot to turn 90 degrees
+    "motor_correction": 20,  # Amount to adjust motor speed for line following
+    "turning_sleep_time": 370,  # Sleep time during turning actions
     "reverse_turning_sleep_time": 250,  # Sleep time during reverse turning actions
     "control_frequency": 50,  # Control frequency in Hz
     "claw_close_angle": 22,
@@ -67,8 +43,47 @@ robot_kwargs = {
     "claw_open_angle": 110,  # 
     "forklift_lower_angle": 0,
     "forklift_raise_angle": 200,
-    "collection_time": 5000
+    "collection_time": 50000,
+    "left_motor_bias": 15,  # Amount to adjust left motor speed for line following
+    "right_motor_bias": 0,  # Amount to adjust right motor speed for line following
 }
+
+
+left_motor = actuators.Motor(7, 6, correction=robot_kwargs["left_motor_bias"])
+right_motor = actuators.Motor(4, 5, correction=robot_kwargs["right_motor_bias"])
+
+forklift_servo = actuators.Servo(Pin(15))
+claw_servo = actuators.Servo(Pin(13))
+
+
+
+left_light_sensor = sensors.Light_Sensor("GP12")
+right_light_sensor = sensors.Light_Sensor("GP8")
+far_left_light_sensor = sensors.Light_Sensor("GP10")
+far_right_light_sensor = sensors.Light_Sensor("GP11")
+
+
+
+led_red = leds.LED("GP22")
+led_green = leds.LED("GP27")
+led_yellow = leds.LED("GP26")
+
+led_red.off()
+led_green.off()
+led_yellow.on()
+
+
+
+#magnetometer = None
+magnetometer = sensors.Magnetometer(Pin("GP28"))
+
+dropoff_distance_sensor = sensors.Distance_Sensor(sda=16, scl=17, config=0)
+collection_distance_sensor = sensors.Distance_Sensor(sda=18, scl=19, config=1)
+#dropoff_distance_sensor = None
+#collection_distance_sensor = None
+
+
+
 
 robot = Robot(
     parameters=robot_kwargs,
@@ -81,32 +96,14 @@ robot = Robot(
     far_left_light_sensor=far_left_light_sensor,
     far_right_light_sensor=far_right_light_sensor,
     magnetometer=magnetometer,
-    led_green=led_green,
-    led_red=led_red,
-    led_yellow=led_yellow,
     collection_distance_sensor=collection_distance_sensor,
     dropoff_distance_sensor=dropoff_distance_sensor,
     led_red=led_red,
     led_yellow=led_yellow,
     led_green=led_green
     )
+
 navigator = Navigator(robot=robot, strt = m.strt)
-
-'''
-
-while running:
-            try:
-                running = run(robot)
-                #print("hello")
-            except Exception as e:
-                print("Robot error:", e)
-                running = False
-                robot.reset()
-            sleep_ms(10)
-robot.reset()
-
-'''
-
 
 while True:
     if button.value() == 1 and running == False:
@@ -117,11 +114,10 @@ while True:
         
     if button.value() == 1 and running == True:
         print("Button pressed. Stopping robot.")
-        robot.led_yellow.stop_flash()
+        led_yellow.stop_flash()
         sleep_ms(1000)  # Debounce delay
         running = False
         
-
     try:
         while running:
             running = run(robot)

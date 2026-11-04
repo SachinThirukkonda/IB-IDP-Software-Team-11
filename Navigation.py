@@ -186,7 +186,7 @@ class Navigator:
             return self.find_path(self.current, destination)
     
 
-        box_nodes = (lwb1, lwb2, leb1, leb2)
+        box_nodes = (leb1, leb2, lwb1, lwb2)
         destination = box_nodes[self.next_box_index]
         self.next_box_index = (self.next_box_index + 1) % len(box_nodes)
         # These pickup points are reused, so always treat the selected point
