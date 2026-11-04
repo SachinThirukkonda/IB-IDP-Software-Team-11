@@ -70,16 +70,16 @@ class Robot:
         left_line, right_line, _, _ = self.line_Sensor_readings()
         if left_line == 0 and right_line == 1 and direction == 1:
             #print("Adjusting. Turning right.")
-            self.right_motor.speed -= self.motor_correction * correction_factor
+            self.right_motor.speed *= (100-self.motor_correction*correction_factor)/100
         if left_line == 1 and right_line == 0 and direction == 1:
             #print("Adjusting. Turning left.")
-            self.left_motor.speed -= self.motor_correction * correction_factor
+            self.left_motor.speed *= (100-self.motor_correction*correction_factor)/100
         if left_line == 0 and right_line == 1 and direction == 0:
             #print("Adjusting. Turning right.")
-            self.right_motor.speed += self.motor_correction * correction_factor
+            self.right_motor.speed *= (100-self.motor_correction*correction_factor)/100
         if left_line == 1 and right_line == 0 and direction == 0:
             #print("Adjusting. Turning left.")
-            self.left_motor.speed += self.motor_correction * correction_factor
+            self.left_motor.speed *= (100-self.motor_correction*correction_factor)/100
         self.left_motor.update()
         self.right_motor.update()
 
@@ -104,12 +104,12 @@ class Robot:
         # LorR (Left or Right) is -1 for left and 1 for right.
         if LorR == -1:
             print("Executing left turn (tank drive)")
-            self.right_motor.on(dir=1, speed=100)
-            self.left_motor.on(dir=0, speed=100)
+            self.right_motor.on(dir=1, speed=self.turning_speed)
+            self.left_motor.on(dir=0, speed=self.turning_speed)
         if LorR == 1:
             print("Executing right turn (tank drive)")
-            self.left_motor.on(dir=1, speed=100)
-            self.right_motor.on(dir=0, speed=100)
+            self.left_motor.on(dir=1, speed=self.turning_speed)
+            self.right_motor.on(dir=0, speed=self.turning_speed)
         # Turns for a set time or until line is detected again. 
         # rot_range is set primarily to allow ensure the robot as approximately turned sufficiently
         # (i.e. in case it detects a line somewhere before turning 90).
@@ -192,8 +192,8 @@ class Robot:
         self.drive(1, speed)
 
         while time is None or ticks_ms() - t0 < time:
-            if (self.dropoff_distance_sensor is not None
-                    and self.dropoff_distance_sensor.value() <= 50):
+            print(f"Dropoff distance: {self.dropoff_distance_sensor.value()}")
+            if (self.dropoff_distance_sensor is not None and self.dropoff_distance_sensor.value() <= 150):
                 self.box_detected = True
                 break
 
@@ -202,6 +202,9 @@ class Robot:
             sleep_ms(self.control_period)
 
         self.drive(1, 0)
+        
+        if not self.box_detected:
+            self.Forward_Until_Node(speed=50)  # Move forward a bit to ensure the box is in position
         return self.box_detected
 
 
@@ -209,39 +212,44 @@ class Robot:
         # LorR (Left or Right) is -1 for left and 1 for right.
         # time for robot's wheels to reach the line before turning
         # needs to be tested and adjusted for speed of robot
-        self.drive(1, 100)
+        self.drive(1, self.turning_speed)
         sleep_ms(self.turning_sleep_time)
         self.turning_sequence(LorR)
 
     def Reverse_Turn(self, turn):
         _, _, far_left_line, far_right_line = self.line_Sensor_readings()
-
+        t0 = ticks_ms()
+        while ticks_ms() - t0 < 1000:
+            self.drive(0, self.speed)
+            sleep_ms(self.control_period)
         # Reverses till junction
         while far_left_line == 1 or far_right_line == 1:
             # Reverse
-            self.drive(0, 100)
-            self.line_following(0, 100)
+            self.drive(0, self.speed)
+            self.line_following(0, 60)
             sleep_ms(self.control_period)
+            print("Reversing to junction1")
             _, _, far_left_line, far_right_line = self.line_Sensor_readings()   
         
         while far_left_line == far_right_line == 0:
             # Reverse
-            self.drive(0, 100)
-            self.line_following(0, 100)
+            self.drive(0, self.speed)
+            self.line_following(0, 60)
             sleep_ms(self.control_period)
+            print("Reversing to junction2")
             _, _, far_left_line, far_right_line = self.line_Sensor_readings()
         
         # Carries out turn in the same manner as driving forwards.
         self.drive(1, 0)
         sleep_ms(100)
-        self.drive(1, 100)
+        self.drive(1, self.speed)
         sleep_ms(self.reverse_turning_sleep_time)
         self.turning_sequence(turn)
 
     def One_Eighty_Degree_Turn(self):
         print("Executing 180 degree turn (tank drive)")
-        self.left_motor.on(dir=1, speed=80)
-        self.right_motor.on(dir=0, speed=80)
+        self.left_motor.on(dir=1, speed=self.turning_speed)
+        self.right_motor.on(dir=0, speed=self.turning_speed)
         self.line_detection(self.one_eighty_degree_turn_range)
 
     '''
@@ -301,136 +309,137 @@ class Robot:
         self.Forward_Until_Node(100)
 
     def motion_control_test(self):
-        self.Forward_Until_Node(100)
-        self.Forward_Until_Node(100)
+        self.Forward_Until_Node(self.speed)
+        self.Forward_Until_Node(self.speed)
         print("turning")
         check = self.Turn(-1)
         print("turning complete")
-        self.Forward_Until_Node(100)
+        self.Forward_Until_Node(self.speed)
         print("turning")
         check = self.Turn(-1)
         print("turning complete")
         self.Collect_Box()
+        print("collected???")
         self.Reverse_Turn(1)
-        self.Forward_Until_Node(100)
-        self.Forward_Until_Node(100)
-        self.Forward_Until_Node(100)
+        self.Forward_Until_Node(self.speed)
+        self.Forward_Until_Node(self.speed)
+        self.Forward_Until_Node(self.speed)
         print("turning")
         check = self.Turn(-1)
         print("turning complete")
         self.forklift_servo.set_angle(self.forklift_raise_angle)
-        self.Forward_Until_Node(100, time=2000)
+        self.Forward_Until_Node(self.speed, time=2000)
         self.Drop_Box()
         self.Reverse_Turn(-1)
-        self.Forward_Until_Node(100)
-        self.Forward_Until_Node(100)
+        self.Forward_Until_Node(self.speed)
+        self.Forward_Until_Node(self.speed)
         check = self.Turn(1)
         print("turning complete")
         self.Collect_Box()
         self.Reverse_Turn(1)
-        self.Forward_Until_Node(100)
-        self.Forward_Until_Node(100)
-        self.Forward_Until_Node(100)
+        self.Forward_Until_Node(self.speed)
+        self.Forward_Until_Node(self.speed)
+        self.Forward_Until_Node(self.speed)
         print("turning")
         check = self.Turn(-1)
         print("turning complete")
         self.forklift_servo.set_angle(self.forklift_raise_angle)
-        self.Forward_Until_Node(100, time=2000)
+        self.Forward_Until_Node(self.speed, time=2000)
         self.Drop_Box()
         self.Reverse_Turn(-1)
-        self.Forward_Until_Node(100)
-        self.Forward_Until_Node(100)
-        self.Forward_Until_Node(100)
-        self.Forward_Until_Node(100)
-        self.Forward_Until_Node(100)
+        self.Forward_Until_Node(self.speed)
+        self.Forward_Until_Node(self.speed)
+        self.Forward_Until_Node(self.speed)
+        self.Forward_Until_Node(self.speed)
+        self.Forward_Until_Node(self.speed)
         print("turning")
         check = self.Turn(1)
         print("turning complete")
-        self.Forward_Until_Node(100)
-        self.Forward_Until_Node(100)
-        self.Forward_Until_Node(100)
-        self.Forward_Until_Node(100)
+        self.Forward_Until_Node(self.speed)
+        self.Forward_Until_Node(self.speed)
+        self.Forward_Until_Node(self.speed)
+        self.Forward_Until_Node(self.speed)
 
-        self.Forward_Until_Node(100)
-        self.Forward_Until_Node(100)
+        self.Forward_Until_Node(self.speed)
+        self.Forward_Until_Node(self.speed)
         print("turning")
         check = self.Turn(1)
         print("turning complete")
-        self.Forward_Until_Node(100)
+        self.Forward_Until_Node(self.speed)
         print("turning")
         check = self.Turn(1)
         print("turning complete")
         self.Collect_Box()
         self.Reverse_Turn(-1)
-        self.Forward_Until_Node(100)
-        self.Forward_Until_Node(100)
-        self.Forward_Until_Node(100)
+        self.Forward_Until_Node(self.speed)
+        self.Forward_Until_Node(self.speed)
+        self.Forward_Until_Node(self.speed)
         print("turning")
         check = self.Turn(1)
         print("turning complete")
         self.forklift_servo.set_angle(self.forklift_raise_angle)
-        self.Forward_Until_Node(100, time=2000)
+        self.Forward_Until_Node(self.speed, time=2000)
         self.Drop_Box()
         self.Reverse_Turn(1)
-        self.Forward_Until_Node(100)
-        self.Forward_Until_Node(100)
+        self.Forward_Until_Node(self.speed)
+        self.Forward_Until_Node(self.speed)
         check = self.Turn(-1)
         print("turning complete")
         self.Collect_Box()
         self.Reverse_Turn(-1)
-        self.Forward_Until_Node(100)
-        self.Forward_Until_Node(100)
-        self.Forward_Until_Node(100)
+        self.Forward_Until_Node(self.speed)
+        self.Forward_Until_Node(self.speed)
+        self.Forward_Until_Node(self.speed)
         print("turning")
         check = self.Turn(1)
         print("turning complete")
         self.forklift_servo.set_angle(self.forklift_raise_angle)
-        self.Forward_Until_Node(100, time=2000)
+        self.Forward_Until_Node(self.speed, time=2000)
         self.Drop_Box()
         self.Reverse_Turn(1)
-        self.Forward_Until_Node(100)
-        self.Forward_Until_Node(100)
-        self.Forward_Until_Node(100)
-        self.Forward_Until_Node(100)
-        self.Forward_Until_Node(100)
+        self.Forward_Until_Node(self.speed)
+        self.Forward_Until_Node(self.speed)
+        self.Forward_Until_Node(self.speed)
+        self.Forward_Until_Node(self.speed)
+        self.Forward_Until_Node(self.speed)
         print("turning")
         check = self.Turn(-1)
         print("turning complete")
-        self.Forward_Until_Node(100)
-        self.Forward_Until_Node(100)
+        self.Forward_Until_Node(self.speed)
+        self.Forward_Until_Node(self.speed)
 
     
     def motion_control(self):
-        self.Forward_Until_Node(100)
-        self.Forward_Until_Node(100)
+        self.Forward_Until_Node(self.speed)
+        self.Forward_Until_Node(self.speed)
         print("turning")
         check = self.Turn(-1)
         print("turning complete")
-        self.Forward_Until_Node(100)
+        self.Forward_Until_Node(self.speed)
         print("turning")
         check = self.Turn(-1)
         print("turning complete")
         self.Collect_Box()
         self.Reverse_Turn(-1)
-        self.Forward_Until_Node(100)
-        self.Forward_Until_Node(100)
-        self.Forward_Until_Node(100)
+        self.Forward_Until_Node(self.speed)
+        self.Forward_Until_Node(self.speed)
+        self.Forward_Until_Node(self.speed)
         print("turning")
         check = self.Turn(-1)
         print("turning complete")
-        self.Forward_Until_Node(100)
+        self.Forward_Until_Node(self.speed)
         self.Drop_Box()
         self.Reverse_Turn(1)
-        self.Forward_Until_Node(100)
-        self.Forward_Until_Node(100)
-        self.Forward_Until_Node(100)
-        self.Forward_Until_Node(100)
+        self.Forward_Until_Node(self.speed)
+        self.Forward_Until_Node(self.speed)
+        self.Forward_Until_Node(self.speed)
+        self.Forward_Until_Node(self.speed)
         print("turning")
         check = self.Turn(1)
         print("turning complete")
-        self.Forward_Until_Node(100)
-        self.Forward_Until_Node(100)
-        
+        self.Forward_Until_Node(self.speed)
+        self.Forward_Until_Node(self.speed)
+
     def update(self):
         self.motion_control_test()
         # Control frequency of robot update loop to prevent overloading the CPU (set to 50 Hz)
@@ -452,6 +461,10 @@ class Robot:
         self.forklift_lower_angle = 120
         self.forklift_raise_angle = 180
         self.collection_time = 1000
+        self.left_motor_bias = 0  # Amount to adjust left motor speed for line following
+        self.right_motor_bias = 0  # Amount to adjust right motor speed for line following
+        self.speed = 100
+        self.turning_speed = 100
 
         # Change any default values to custom values for specified hyperparameters
         for param, val in parameters.items():
@@ -550,7 +563,7 @@ class Robot:
         return True
 
     def test_distance_sensors(self):
-        print(f"Collection distance sensor reading: {self.collection_distance_sensor.value()}")
+        #print(f"Collection distance sensor reading: {self.collection_distance_sensor.value()}")
         print(f"Dropoff distance sensor reading: {self.dropoff_distance_sensor.value()}")
         sleep_ms(100)
         return True
@@ -574,5 +587,28 @@ class Robot:
         else:            
             print("Magnetometer not initialized.")    
             return False
+
+    def test_dropoff(self):
+        self.claw_servo.set_angle(self.claw_close_angle)
+        sleep_ms(1000)
+        box_detected = self.Forward_Until_Rack(self.speed)
+        if box_detected:
+            print("Box detected at rack.")
+            self.Reverse_Turn(-1)
+        else:
+            sleep_ms(1000)
+            self.Drop_Box()
+            sleep_ms(1000)
+        return True
+
+    def test_dropoff_distance_sensor(self):
+        self.claw_servo.set_angle(self.claw_close_angle)
+        print(f"Dropoff distance sensor reading: {self.dropoff_distance_sensor.value()}")
+        sleep_ms(100)
+        return True
+    def reverse_drive_test(self):
+        self.drive(0, self.speed)
+        self.line_following(0, self.speed)
+        sleep_ms(self.control_period)
         
         

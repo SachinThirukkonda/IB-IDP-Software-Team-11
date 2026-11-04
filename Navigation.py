@@ -118,11 +118,11 @@ class Navigator:
         self.robot.Forward_Until_Node(80)
         # Turn into rack
         self.Turn(self.polarity * side)
-       
+        self.robot.forklift_servo.set_angle(self.robot.forklift_raise_angle)
         # Box drop sequence
         rack_occupied = self.robot.Forward_Until_Rack(80, time=2000)
         if not rack_occupied:
-            self.robot.forklift_servo.set_angle(self.robot.forklift_raise_angle)
+            
             self.robot.Drop_Box()
         
             # Return from the rack spur using the turn opposite to its side.
