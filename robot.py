@@ -1,5 +1,4 @@
 from utime import sleep_ms, ticks_ms
-from helper import line_detection
 from Navigation import Navigator
 
 
@@ -18,8 +17,8 @@ class Robot:
 
         self.forklift_servo = forklift_servo
         self.claw_servo = claw_servo
-        self.forklift_servo.set_angle(self.forklift_default_angle)
-        self.claw_servo.set_angle(self.claw_open_angle)
+        #self.forklift_servo.set_angle(self.forklift_default_angle)
+        #self.claw_servo.set_angle(self.claw_open_angle)
 
         self.magnetometer = magnetometer
         self.led_green = led_green
@@ -66,23 +65,34 @@ class Robot:
         far_right_line = self.far_right_light_sensor.value()
         return left_line, right_line, far_left_line, far_right_line
     
-    def line_following(self, direction):
+    def line_following(self, direction, speed):
+        correction_factor = speed / 100  # Adjust correction based on speed
         left_line, right_line, _, _ = self.line_Sensor_readings()
         if left_line == 0 and right_line == 1 and direction == 1:
             #print("Adjusting. Turning right.")
-            self.right_motor.speed -= self.motor_correction
+            self.right_motor.speed -= self.motor_correction * correction_factor
         if left_line == 1 and right_line == 0 and direction == 1:
             #print("Adjusting. Turning left.")
-            self.left_motor.speed -= self.motor_correction
+            self.left_motor.speed -= self.motor_correction * correction_factor
         if left_line == 0 and right_line == 1 and direction == 0:
             #print("Adjusting. Turning right.")
-            self.right_motor.speed += self.motor_correction
+            self.right_motor.speed += self.motor_correction * correction_factor
         if left_line == 1 and right_line == 0 and direction == 0:
             #print("Adjusting. Turning left.")
-            self.left_motor.speed += self.motor_correction
+            self.left_motor.speed += self.motor_correction * correction_factor
         self.left_motor.update()
         self.right_motor.update()
-        
+
+    def line_detection(self, rot_range):
+        t0 = ticks_ms()
+        while ticks_ms() - t0 < rot_range[1]:
+            if (self.right_light_sensor.value() == 1 or self.left_light_sensor.value() == 1) and rot_range[0] < (ticks_ms() - t0) < rot_range[1]:
+                print(ticks_ms() - t0)
+                print("Line detected. Stopping turn.")
+                return True
+        print("Line not detected. Stopping turn.")
+        return False
+    
     def is_at_junction(self):
         left_line, right_line, far_left_line, far_right_line = self.line_Sensor_readings()
         if far_left_line == 1 or far_right_line == 1 or (left_line == 0 and right_line == 0):
@@ -104,27 +114,44 @@ class Robot:
         # rot_range is set primarily to allow ensure the robot as approximately turned sufficiently
         # (i.e. in case it detects a line somewhere before turning 90).
         # It also acts as a safety in case the robot misses the line, to prevent it from continuing to turn indefinitely
-        line_detection(self.ninety_degree_turn_range, self.left_light_sensor, self.right_light_sensor)
+        self.line_detection(self.ninety_degree_turn_range)
         sleep_ms(50)
 
     def move_to_box(self, speed):
+
+        # If magnetmeter is not implemented, use distance sensor to detect box
+        t0 = ticks_ms()
+        #self.claw_servo.set_angle(self.claw_close_angle)
+        while self.collection_distance_sensor.value() > 60 and ticks_ms() < (t0 + self.collection_time):
+            self.drive(1, speed)
+            self.line_following(1, speed)
+            self.collection_distance_sensor.test()
+            sleep_ms(self.control_period)
+        if ticks_ms() >= (t0 + self.collection_time):
+            # Aborted
+            sleep_ms(self.collection_time)
+            print("Box not found")
+            return 0
+        else:
+            print("Box found")
+            return 1
+        
+    def find_box_polarity(self):
         t0 = ticks_ms()
         polarity = 0
         self.magnetometer.update()
-        while self.magnetometer.value() == 0 and ticks_ms() < (t0 + self.collection_time):
+        while self.magnetometer.value() == 0 and ticks_ms() < (t0 + 500):
             self.magnetometer.update()
-            self.drive(1, speed)
             sleep_ms(self.control_period)
             polarity = self.magnetometer.value()
+            print(f"Polarity: {polarity}")
         polarity = self.magnetometer.value()
-        if polarity == 0:
-            self.drive(0, speed)
-            sleep_ms(self.control_period)
-        else:
-            self.box_polarity = polarity
-        return polarity
-        
-
+        self.box_polarity = polarity
+        self.has_box = self.box_polarity in (-1, 1)
+        if self.has_box:
+            return polarity
+        return -1
+    
     def reset(self):
         self.left_motor.off()
         self.right_motor.off()
@@ -139,19 +166,19 @@ class Robot:
         self.drive(1, speed)
         while self.is_at_junction() == True:
             self.drive(1, speed)
-            self.line_following(1)
+            self.line_following(1, speed)
 
             sleep_ms(self.control_period)
         if time == None:
             while self.is_at_junction() == False:
                 self.drive(1, speed)
-                self.line_following(1)
+                self.line_following(1, speed)
                 sleep_ms(self.control_period)
         else:
             t0 = ticks_ms()
             while ticks_ms() - t0 < time:
                 self.drive(1, speed)
-                self.line_following(1)
+                self.line_following(1, speed)
                 sleep_ms(self.control_period)
         
         self.drive(1, 0)
@@ -171,7 +198,7 @@ class Robot:
                 break
 
             self.drive(1, speed)
-            self.line_following(1)
+            self.line_following(1, speed)
             sleep_ms(self.control_period)
 
         self.drive(1, 0)
@@ -193,14 +220,14 @@ class Robot:
         while far_left_line == 1 or far_right_line == 1:
             # Reverse
             self.drive(0, 100)
-            self.line_following(0)         
+            self.line_following(0, 100)
             sleep_ms(self.control_period)
             _, _, far_left_line, far_right_line = self.line_Sensor_readings()   
         
         while far_left_line == far_right_line == 0:
             # Reverse
             self.drive(0, 100)
-            self.line_following(0)
+            self.line_following(0, 100)
             sleep_ms(self.control_period)
             _, _, far_left_line, far_right_line = self.line_Sensor_readings()
         
@@ -215,7 +242,7 @@ class Robot:
         print("Executing 180 degree turn (tank drive)")
         self.left_motor.on(dir=1, speed=80)
         self.right_motor.on(dir=0, speed=80)
-        line_detection(self.one_eighty_degree_turn_range, self.left_light_sensor, self.right_light_sensor)
+        self.line_detection(self.one_eighty_degree_turn_range)
 
     '''
     Box Collection and Drop-off Methods
@@ -226,17 +253,19 @@ class Robot:
         self.reset()
         sleep_ms(1000)
         # Move to box until magnetometer detects it
-        box_polarity = self.move_to_box(50) 
-
-        #Close claws on box and lift it up  
-        self.forklift_servo.set_angle(self.forklift_lower_angle)    
-        sleep_ms(1000) 
-        self.claw_servo.set_angle(self.claw_close_angle)
-        sleep_ms(1000)
+        self.has_box = self.move_to_box(50) 
+        self.drive(1, 0)
+        
+        if self.has_box:
+            #Close claws on box and lift it up  
+            self.forklift_servo.set_angle(self.forklift_lower_angle)    
+            sleep_ms(1000) 
+            self.claw_servo.set_angle(self.claw_close_angle)
+            sleep_ms(1000)
         self.forklift_servo.set_angle(self.forklift_default_angle)
+        box_polarity = self.find_box_polarity()
+        print(f"Box polarity: {box_polarity}")
 
-        self.box_polarity = box_polarity
-        self.has_box = box_polarity in (-1, 1)
         self._set_box_polarity_leds(box_polarity)
         
         return box_polarity
@@ -520,8 +549,10 @@ class Robot:
         sleep_ms(100)
         return True
 
-    def test_collection_distance_sensor(self):
-        self.collection_distance_sensor.test()
+    def test_distance_sensors(self):
+        print(f"Collection distance sensor reading: {self.collection_distance_sensor.value()}")
+        print(f"Dropoff distance sensor reading: {self.dropoff_distance_sensor.value()}")
+        sleep_ms(100)
         return True
         
     def test_180(self):
@@ -530,7 +561,7 @@ class Robot:
             self.One_Eighty_Degree_Turn()
         else:
             self.drive(1, 100)
-            self.line_following(1)
+            self.line_following(1, 100)
             sleep_ms(20)
                     
     def test_magnetometer(self):        
