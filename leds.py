@@ -6,6 +6,7 @@ class LED:
     def __init__(self, pin):
         self.led = Pin(pin, Pin.OUT)
         self.timer = Timer(-1)
+        self.led.off()
 
     def start_flash(self):
         self.timer.init(period=500, mode=Timer.PERIODIC, callback=self.toggle)

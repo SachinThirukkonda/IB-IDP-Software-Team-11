@@ -13,7 +13,6 @@ import Navigation as m
 
 def run(robot):
     """Main pipeline for the robot."""
-    '''
     navigator.get_route_for_box_state(has_box=False)
     navigator.FollowRoute()
     navigator.get_route_for_box_state(has_box=True)
@@ -38,7 +37,7 @@ robot_kwargs = {
     "turning_sleep_time": 370,  # Sleep time during turning actions
     "reverse_turning_sleep_time": 250,  # Sleep time during reverse turning actions
     "control_frequency": 50,  # Control frequency in Hz
-    "claw_close_angle": 22,
+    "claw_close_angle": 50,
     "forklift_default_angle": 108,
     "claw_open_angle": 110,  # 
     "forklift_lower_angle": 0,
@@ -97,13 +96,12 @@ robot = Robot(
     far_right_light_sensor=far_right_light_sensor,
     magnetometer=magnetometer,
     collection_distance_sensor=collection_distance_sensor,
-    dropoff_distance_sensor=dropoff_distance_sensor,
-    led_red=led_red,
-    led_yellow=led_yellow,
-    led_green=led_green
+    dropoff_distance_sensor=dropoff_distance_sensor
     )
 
 navigator = Navigator(robot=robot, strt = m.strt)
+
+led_yellow.on()
 
 while True:
     if button.value() == 1 and running == False:

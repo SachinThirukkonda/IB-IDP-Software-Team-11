@@ -185,7 +185,7 @@ class Robot:
 
 
 
-    def Forward_Until_Rack(self, speed, time=1500):
+    def Forward_Until_Rack(self, speed, time=2000):
         """Follow the line toward a rack until it is detected or time expires."""
         t0 = ticks_ms()
         self.box_detected = False
@@ -200,9 +200,6 @@ class Robot:
             self.drive(1, speed)
             self.line_following(1, speed)
             sleep_ms(self.control_period)
-        self.forklift_servo.set_angle(self.forklift_raise_angle)
-        self.Forward_Until_Node(speed=100)
-
 
         self.drive(1, 0)
         return self.box_detected
@@ -577,16 +574,5 @@ class Robot:
         else:            
             print("Magnetometer not initialized.")    
             return False
-
-    def test_leds(self):
-        self.led_green.on()
-        self.led_yellow.on()
-        self.led_red.on()
-        sleep_ms(1000)
-        self.led_green.off()
-        self.led_yellow.off()
-        self.led_red.off()
-        sleep_ms(1000)
-        return True
         
         
