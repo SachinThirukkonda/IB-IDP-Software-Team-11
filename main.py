@@ -17,7 +17,7 @@ def run(robot):
     navigator.FollowRoute()
     navigator.get_route_for_box_state(has_box=True)
     navigator.FollowRoute()
-
+    
     #return robot.Forward_Until_Node(speed=100)
     #robot.move_to_box(speed=50)
     
@@ -34,7 +34,7 @@ robot_kwargs = {
     "ninety_degree_turn_range": [600, 1200],  # time in ms for robot to turn 90 degrees
     "motor_correction": 20,  # Amount to adjust motor speed for line following
     "turning_sleep_time": 370,  # Sleep time during turning actions
-    "reverse_turning_sleep_time": 250,  # Sleep time during reverse turning actions
+    "reverse_turning_sleep_time": 340,  # Sleep time during reverse turning actions
     "control_frequency": 50,  # Control frequency in Hz
     "claw_close_angle": 22,
     "forklift_default_angle": 108,

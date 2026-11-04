@@ -67,7 +67,7 @@ class Robot:
     
     def line_following(self, direction, speed):
         correction_factor = speed / 100  # Adjust correction based on speed
-        left_line, right_line, _, _ = self.line_Sensor_readings()
+        left_line, right_line, far_left_line, far_right_line = self.line_Sensor_readings()
         if left_line == 0 and right_line == 1 and direction == 1:
             #print("Adjusting. Turning right.")
             self.right_motor.speed *= (100-self.motor_correction*correction_factor)/100
@@ -78,6 +78,18 @@ class Robot:
             #print("Adjusting. Turning right.")
             self.right_motor.speed *= (100-self.motor_correction*correction_factor)/100
         if left_line == 1 and right_line == 0 and direction == 0:
+            #print("Adjusting. Turning left.")
+            self.left_motor.speed *= (100-self.motor_correction*correction_factor)/100
+        if far_left_line == 0 and far_right_line == 1 and left_line == right_line == 0 and direction == 1:
+            #print("Adjusting. Turning right.")
+            self.right_motor.speed *= (100-self.motor_correction*correction_factor)/100
+        if far_left_line == 1 and far_right_line == 0 and left_line == right_line == 0 and direction == 1:
+            #print("Adjusting. Turning left.")
+            self.left_motor.speed *= (100-self.motor_correction*correction_factor)/100
+        if far_left_line == 0 and far_right_line == 1 and left_line == right_line == 0 and direction == 0:
+            #print("Adjusting. Turning right.")
+            self.right_motor.speed *= (100-self.motor_correction*correction_factor)/100
+        if far_left_line == 1 and far_right_line == 0 and left_line == right_line == 0 and direction == 0:
             #print("Adjusting. Turning left.")
             self.left_motor.speed *= (100-self.motor_correction*correction_factor)/100
         self.left_motor.update()
@@ -95,7 +107,7 @@ class Robot:
     
     def is_at_junction(self):
         left_line, right_line, far_left_line, far_right_line = self.line_Sensor_readings()
-        if far_left_line == 1 or far_right_line == 1 or (left_line == 0 and right_line == 0):
+        if far_left_line == 1 or far_right_line == 1 or (left_line == right_line == far_left_line == far_right_line == 0):
             self.at_junction = True
             return True
         return False
@@ -139,9 +151,11 @@ class Robot:
     def find_box_polarity(self):
         t0 = ticks_ms()
         polarity = 0
+        tick = 0
         self.magnetometer.update()
         while self.magnetometer.value() == 0 and ticks_ms() < (t0 + 500):
             self.magnetometer.update()
+            tick += 1
             sleep_ms(self.control_period)
             polarity = self.magnetometer.value()
             print(f"Polarity: {polarity}")
@@ -150,7 +164,11 @@ class Robot:
         self.has_box = self.box_polarity in (-1, 1)
         if self.has_box:
             return polarity
-        return -1
+        tick %= 2
+        if tick == 0:
+            return 1
+        else:
+            return -1
     
     def reset(self):
         self.left_motor.off()
@@ -162,24 +180,22 @@ class Robot:
     Motion Methods
     '''
 
-    def Forward_Until_Node(self, speed, time=None):
+    def Forward_Until_Node(self, speed, check=True):
         self.drive(1, speed)
         while self.is_at_junction() == True:
             self.drive(1, speed)
             self.line_following(1, speed)
 
             sleep_ms(self.control_period)
-        if time == None:
-            while self.is_at_junction() == False:
-                self.drive(1, speed)
-                self.line_following(1, speed)
-                sleep_ms(self.control_period)
-        else:
-            t0 = ticks_ms()
-            while ticks_ms() - t0 < time:
-                self.drive(1, speed)
-                self.line_following(1, speed)
-                sleep_ms(self.control_period)
+        while self.is_at_junction() == False:
+            self.drive(1, speed)
+            self.line_following(1, speed)
+            left_line, right_line, far_left_line, far_right_line = self.line_Sensor_readings()
+            if check == True and left_line == right_line == far_left_line == far_right_line == 0:
+                print("Derailed from line. Stopping.")
+                print(left_line/0)
+                
+            sleep_ms(self.control_period)
         
         self.drive(1, 0)
 
@@ -204,7 +220,7 @@ class Robot:
         self.drive(1, 0)
         
         if not self.box_detected:
-            self.Forward_Until_Node(speed=50)  # Move forward a bit to ensure the box is in position
+            self.Forward_Until_Node(speed=50, check=False)  # Move forward a bit to ensure the box is in position
         return self.box_detected
 
 
@@ -328,7 +344,7 @@ class Robot:
         check = self.Turn(-1)
         print("turning complete")
         self.forklift_servo.set_angle(self.forklift_raise_angle)
-        self.Forward_Until_Node(self.speed, time=2000)
+        self.Forward_Until_Node(self.speed)
         self.Drop_Box()
         self.Reverse_Turn(-1)
         self.Forward_Until_Node(self.speed)
@@ -344,7 +360,7 @@ class Robot:
         check = self.Turn(-1)
         print("turning complete")
         self.forklift_servo.set_angle(self.forklift_raise_angle)
-        self.Forward_Until_Node(self.speed, time=2000)
+        self.Forward_Until_Node(self.speed)
         self.Drop_Box()
         self.Reverse_Turn(-1)
         self.Forward_Until_Node(self.speed)
@@ -378,7 +394,7 @@ class Robot:
         check = self.Turn(1)
         print("turning complete")
         self.forklift_servo.set_angle(self.forklift_raise_angle)
-        self.Forward_Until_Node(self.speed, time=2000)
+        self.Forward_Until_Node(self.speed)
         self.Drop_Box()
         self.Reverse_Turn(1)
         self.Forward_Until_Node(self.speed)
@@ -394,7 +410,7 @@ class Robot:
         check = self.Turn(1)
         print("turning complete")
         self.forklift_servo.set_angle(self.forklift_raise_angle)
-        self.Forward_Until_Node(self.speed, time=2000)
+        self.Forward_Until_Node(self.speed)
         self.Drop_Box()
         self.Reverse_Turn(1)
         self.Forward_Until_Node(self.speed)
