@@ -17,7 +17,7 @@ def run(robot):
     navigator.FollowRoute()
     navigator.get_route_for_box_state(has_box=True)
     navigator.FollowRoute()
-    '''
+    
     #return robot.Forward_Until_Node(speed=100)
     robot.move_to_box(speed=50)
     
@@ -94,7 +94,8 @@ robot = Robot(
     right_light_sensor=right_light_sensor,
     far_left_light_sensor=far_left_light_sensor,
     far_right_light_sensor=far_right_light_sensor,
-    magnetometer=magnetometer,
+    magnetometer=magnetometer, 
+    led_yellow=led_yellow, led_red=led_red, led_green=led_green,
     collection_distance_sensor=collection_distance_sensor,
     dropoff_distance_sensor=dropoff_distance_sensor
     )
