@@ -71,9 +71,9 @@ class Navigator:
         elif nxt.rack:
             self.Orient(node, nxt)
 
+            self.robot.forklift_servo.set_angle(self.robot.forklift_raise_angle)
             rack_occupied = self.robot.Forward_Until_Rack(80, time=2000)
             if not rack_occupied:
-                self.robot.forklift_servo.set_angle(self.robot.forklift_raise_angle)
                 self.robot.Drop_Box()
 
                 # Return from the rack spur using the turn opposite to its side.
