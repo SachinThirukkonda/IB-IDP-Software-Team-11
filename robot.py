@@ -190,6 +190,8 @@ class Robot:
             if check == True and left_line == right_line == far_left_line == far_right_line == 0:
                 print("Derailed from line. Stopping.")
                 self.drive(1, 0)
+                raise RuntimeError("Robot lost the line while moving to the next node")
+                
             sleep_ms(self.control_period)
         
         self.drive(1, 0)
@@ -205,9 +207,14 @@ class Robot:
         # Move forward until the dropoff distance sensor detects a box or time expires.
         # If a box is detected, then the program returns that a box was detected, which is used in later algorithms.
         while time is None or ticks_ms() - t0 < time:
-            if (self.dropoff_distance_sensor is not None and self.dropoff_distance_sensor.value() <= 150):
-                self.box_detected = True
-                break
+            if self.dropoff_distance_sensor is None:
+                print("Dropoff distance sensor is not configured.")
+            else:
+                distance = self.dropoff_distance_sensor.value()
+                print(f"Dropoff distance: {distance}")
+                if distance <= 150:
+                    self.box_detected = True
+                    break
 
             self.drive(1, speed)
             self.line_following(1, speed)

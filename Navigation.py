@@ -1,22 +1,29 @@
-from box import box
 from collections import deque
 
 class Crossroads:
     def __init__(self, name, neighbours, side=0, occupied = False, rack = False):
-        #neighbours are [north node, east node, south node, west node]
+        """Create a node whose neighbours are ordered north, east, south, west.
+
+        ``side`` is -1 for west, 1 for east, or 0 for a central node.
+        ``occupied`` marks a box pickup point; ``rack`` marks a drop-off point.
+        """
         self.neighbours = neighbours
-        self.occupied = occupied #does this have a box?
-        self.rack = rack #does this have somewhere to put a box?
+        self.occupied = occupied
+        self.rack = rack
         self.name = name
         self.label = name.split()
         self.side = side
 
     def Update_neighbours(self, new_neighbours):
+        """Replace this node's directional neighbour list."""
         self.neighbours = new_neighbours
 
 class Navigator:
     def __init__(self, robot, strt):
-        # 0-north, 1-east, 2-south, 3-west
+        """Track the robot's position and heading, starting at ``strt``.
+
+        Heading values are 0=north, 1=east, 2=south, and 3=west.
+        """
         self.route = []
         self.orientation = 1
         self.robot = robot
@@ -36,12 +43,9 @@ class Navigator:
         self.orientation = (self.orientation + direction) % 4
 
     def Orient(self, node, nxt):
-        #find difference between own orientation and location of destination
+        """Turn to face ``nxt``, the neighbour reached from ``node``."""
         dest_orientation = node.neighbours.index(nxt)
-        #we now find the difference between the two; 
-        # if we get 1 or -3, we know we need to turn right
-        # if we get -1 or 3, we know we need to turn left
-        # if we get +-2, we know we need to do a 180
+        # Find the relative turn from the current heading to the destination.
         delta_orientation = (dest_orientation - self.orientation) % 4
         if delta_orientation == 0:
             return
@@ -56,10 +60,12 @@ class Navigator:
             self.Turn(-1)
     
     def NavStep(self, node, nxt):
+        """Face an ordinary junction and drive forward to it."""
         self.Orient(node, nxt)
         self.robot.Forward_Until_Node(100)
 
     def FollowStep(self, node, nxt):
+        """Execute one route step, handling box and rack spurs specially."""
         if nxt.occupied:
             self.Orient(node, nxt)
             self.targeted_box_side = nxt.side
@@ -87,8 +93,9 @@ class Navigator:
             self.current = nxt
 
     def FollowRoute(self):
+        """Execute every step in the route currently stored on this navigator."""
         routeCopy = deque(self.route, 100)
-        #set start to first node in route and destination to second
+        # A route needs at least one edge to move along.
         if len(routeCopy) >= 2:
             node = routeCopy.popleft()
             self.current = node
@@ -97,7 +104,7 @@ class Navigator:
             print("No route to follow")
             return
         
-        #now loop through until route is empty:
+        # Process edges while keeping track of their source and destination.
         while len(routeCopy) > 0:
             #go to next node
             self.FollowStep(node, nxt)
@@ -105,19 +112,24 @@ class Navigator:
             node = nxt
             #new destination is start of remaining route
             nxt = routeCopy.popleft()
-        #at the end of this loop, route will be empty but we won't have gone to the last node. so
-        self.FollowStep(node, nxt) #do the final step
+        # The loop leaves one final edge to execute.
+        self.FollowStep(node, nxt)
 
 
     def next_rack(self, side, n=1):
-        # Do a reverse turn towards next rack
+        """Try the next rack on ``side`` if the current rack is occupied.
+
+        n counts junctions to travel past after a successful drop-off. Occupied
+        racks are skipped recursively.
+        """
+        # Leave the current rack spur and return to the main route.
         self.Turn(-self.polarity * self.targeted_box_side, reverse=True)
             
         self.robot.Forward_Until_Node(80)
-        # Turn into rack
+        # Enter the next rack spur.
         self.Turn(self.polarity * side)
         self.robot.forklift_servo.set_angle(self.robot.forklift_raise_angle)
-        # Box drop sequence
+        # Check for an empty rack and drop off the box if one is available.
         rack_occupied = self.robot.Forward_Until_Rack(80, time=2000)
         if not rack_occupied:
             
@@ -137,6 +149,11 @@ class Navigator:
 
 
     def find_path(self, strt, end):
+        """Find and store a shortest route from ``strt`` to ``end``.
+
+        ``end`` may be one node or a tuple of acceptable destinations. Returns
+        the destination reached, or raises ``ValueError`` if it is unreachable.
+        """
         destinations = set(end) if isinstance(end, tuple) else {end}
         queue = deque([strt], 100) # Allows popleft
         came_from = {strt: None}  #Dictionary where the value of each key is the node which comes before the key node in the path
@@ -167,7 +184,12 @@ class Navigator:
 
 
     def get_route_for_box_state(self, has_box):
-        """Route to a rack when carrying, otherwise to the next box in rotation."""
+        """Choose and store a route based on whether the robot carries a box.
+
+        When carrying, box polarity and pickup side select its rack. Otherwise,
+        choose the next pickup point in the repeating sequence. Return the
+        selected destination node.
+        """
         if has_box:
             if self.polarity not in (-1, 1):
                 raise ValueError("Box polarity must be -1 or 1 before routing to a rack")
