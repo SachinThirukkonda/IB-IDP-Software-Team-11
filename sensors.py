@@ -4,17 +4,21 @@ from libs.VL53L0X.VL53L0X import VL53L0X
 class Light_Sensor:
     def __init__(self, pin):
         self.light_sensor = Pin(pin, Pin.IN, Pin.PULL_UP)
+        # Stores adjacent readings and checks for consistency to avoid false positives from noise or interference. 
+        # If the readings are inconsistent, it returns 0 (i.e. no line detected).
         self.window_size = 3
         self.readings = []
     
     def value(self):
         reading = self.light_sensor.value()
         self.readings.append(reading)
-
+        # Remove the oldest reading if we have more than the window size
         if len(self.readings) > self.window_size:
             self.readings.pop(0)
+        # If all the readings are consistent.
         if len(set(self.readings)) == 1:
             return self.readings[0]
+        # If the readings are inconsistent, return 0 (i.e. no line detected).
         return 0
     
     def test(self):
@@ -28,8 +32,11 @@ class Magnetometer:
             self.samples = []
         
     def value(self):
+        # Takes the median value to avoid extremes due to noise or interference.
         ordered = sorted(self.samples)
         value = ordered[len(ordered) // 2]
+        # Return 1 if the value is above the threshold, -1 if below, and 0 if in between. 
+        # The threshold values were determined experimentally.
         if value > 34000:
             return 1
         elif value < 31000:

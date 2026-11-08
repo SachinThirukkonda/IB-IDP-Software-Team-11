@@ -14,7 +14,8 @@ class Motor:
         
     def on(self, dir=1, speed=None):
         if speed != None and speed != 0:
-            self.speed = speed-self.correction
+            # apply correction to speed to compensate for motor differences
+            self.speed = speed - self.correction
         else:
             self.speed = 0
         self.mDir.value(dir)                  # forward = 0 reverse = 1 motor
